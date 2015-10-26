@@ -11,7 +11,7 @@ CREATE TABLE Hotel (
 );
 
 CREATE TABLE Room (
-    roomNo INT NOT NULL UNIQUE CHECK (value BETWEEN 1 AND 9999),
+    roomNo INT NOT NULL CHECK (value BETWEEN 1 AND 9999),
     H_hotelNo INT NOT NULL CHECK (value IN (SELECT 
             hotelNo
         FROM
@@ -42,7 +42,7 @@ CREATE TABLE Booking (
             Guest)),
     dateFrom DATE NOT NULL,
     dateTo DATE NOT NULL CHECK (value >= dateFrom),
-    R_roomNo INT NOT NULL UNIQUE,
+    R_roomNo INT NOT NULL,
     PRIMARY KEY (H_hotelNo , dateFrom , R_roomNo),
     FOREIGN KEY (H_hotelNo)
         REFERENCES Hotel (hotelNo)
