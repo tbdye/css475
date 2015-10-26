@@ -1,0 +1,70 @@
+DROP TABLE Booking;
+DROP TABLE Guest;
+DROP TABLE Room;
+DROP TABLE Hotel;
+
+CREATE TABLE Hotel (
+    hotelNo INT NOT NULL UNIQUE,
+    hotelName VARCHAR(15) NOT NULL,
+    hotelCity VARCHAR(15) NOT NULL,
+    PRIMARY KEY (hotelNo)
+);
+
+CREATE TABLE Room (
+    roomNo INT NOT NULL UNIQUE CHECK (value BETWEEN 1 AND 9999),
+    H_hotelNo INT NOT NULL CHECK (value IN (SELECT 
+            hotelNo
+        FROM
+            Hotel)),
+    roomType VARCHAR(8) NOT NULL CHECK (roomType IN ('single' , 'double', 'suite')),
+    roomPrice DECIMAL(5 , 2 ) NOT NULL CHECK (value BETWEEN 50 AND 500),
+    PRIMARY KEY (roomNo , H_hotelNo),
+	FOREIGN KEY (H_hotelNo)
+		REFERENCES Hotel(hotelNo)
+		ON DELETE CASCADE ON UPDATE CASCADE
+);
+	
+CREATE TABLE Guest (
+    guestNo INT NOT NULL UNIQUE CHECK (value > 0),
+    guestName VARCHAR(60) NOT NULL,
+    guestAddress VARCHAR(60) NOT NULL,
+    PRIMARY KEY (guestNo)
+);
+
+CREATE TABLE Booking (
+    H_hotelNo INT NOT NULL CHECK (value IN (SELECT 
+            hotelNo
+        FROM
+            Hotel)),
+    G_guestNo INT NOT NULL CHECK (value IN (SELECT 
+            guestNo
+        FROM
+            Guest)),
+    dateFrom DATE NOT NULL,
+    dateTo DATE NOT NULL CHECK (value >= dateFrom),
+    R_roomNo INT NOT NULL UNIQUE,
+    PRIMARY KEY (H_hotelNo , dateFrom , R_roomNo),
+    FOREIGN KEY (H_hotelNo)
+        REFERENCES Hotel (hotelNo)
+        ON DELETE NO ACTION ON UPDATE CASCADE,
+    FOREIGN KEY (G_guestNo)
+        REFERENCES Guest (guestNo)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (R_roomNo)
+        REFERENCES Room (roomNo)
+        ON DELETE NO ACTION ON UPDATE CASCADE
+);
+
+DELIMITER $$
+CREATE TRIGGER PreventDoubleBooking BEFORE INSERT ON Booking 
+FOR EACH ROW
+BEGIN
+	IF EXISTS (SELECT 1 FROM Booking WHERE
+		H_hotelNo = NEW.H_hotelNo AND
+		R_roomNo = NEW.R_roomNo AND
+		dateFrom <= NEW.dateTo AND
+		dateTo >= NEW.dateFrom) THEN BEGIN
+			END;
+	END IF;
+END$$
+DELIMITER ;
