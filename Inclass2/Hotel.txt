@@ -6,13 +6,52 @@ Instructor:  Dr. Erika Parsons
 Hotel Database
 -----------------------------------------------------------------------------*/
 
+/*-----------------------------------------------------------------------------
+Assignment requirements
+1.Create the following domains: 
+	a.Room types could be for instance: Standard, Deluxe, Suite, Single, Double
+		(choose at least 3 different types) 
+	b.Hotel numbers that are present in the Hotel table. 
+	c.Room prices between $50.00 and $500.00. 
+	d.Room numbers between 1 and 9999 
+
+2.Re-create or modify  the Room table using the above domains. 
+
+3.Modify the Booking table (allowing only guests that are present in the Guest
+	table) 
+	a.Add a constraint to the Booking table that the dateFrom must precede the
+		dateTo. 
+	b.Add a constraint to the Booking table that the same room cannot be
+		double booked. (This one is tricky!)
+
+-------------------------------------------------------------------------------
+Questions
+4.Answer the following: 
+	a.Given that we already have data inside these tables, is it better to
+		regenerate the table or just update it?  Consider the situation when
+		the table has not 20, but 20 million records. 
+
+
+		
+	b.What are the pros and cons of updating the table vs. re-creating it from
+		scratch? 
+
+		
+
+	c.What could you do if you were not allowed to re-create a table from
+		scratch, i.e., you can only modify it?
+
+
+
+-----------------------------------------------------------------------------*/
+
+#Comment out if creating tables in a new schema
 DROP TABLE Booking;
 DROP TABLE Guest;
 DROP TABLE Room;
 DROP TABLE Hotel;
 
-/*Create tables here*/
-
+#Create tables here------------------------------------------------------------
 CREATE TABLE Hotel (
     hotelNo INT NOT NULL UNIQUE,
     hotelName VARCHAR(15) NOT NULL,
@@ -79,8 +118,7 @@ BEGIN
 END$$
 DELIMITER ;
 
-/*Default data inserted here*/
-
+#Default data inserted here----------------------------------------------------
 INSERT INTO Hotel VALUES (001, 'Hilton', 'Seattle');
 INSERT INTO Hotel VALUES (002, 'Marriot', 'Honolulu');
 INSERT INTO Hotel VALUES (003, 'Best Western', 'Los Angeles');
@@ -117,19 +155,20 @@ INSERT INTO Booking VALUES (003, 005, '2009-03-02', '2009-03-05', 100);
 INSERT INTO Booking VALUES (003, 005, '2009-03-27', '2009-03-28', 200);
 INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 100);
 
-/*Add insertions for testing constraints here*/
+#Add insertions for testing constraints here-----------------------------------
 
 
 
-/*Add selections here*/
+#Add selection statements here-------------------------------------------------
 
-#1
+#1	Display all information in the hotel relation.
 SELECT 
     *
 FROM
     Hotel;
 
-#2
+#2	List the names and address of guests from Seattle. (The guestAddress
+#	includes the city, state, etc.)
 SELECT 
     *
 FROM
@@ -137,7 +176,7 @@ FROM
 WHERE
     guestAddress LIKE '%Seattle%';
 
-#3
+#3	Modify your query (2) to do the listing alphabetically by name
 SELECT 
     *
 FROM
@@ -146,13 +185,14 @@ WHERE
     guestAddress LIKE '%Seattle%'
 ORDER BY guestName ASC;
 
-#4
+#4	Determine the number of hotels in the database.
 SELECT 
     COUNT(*)
 FROM
     Hotel;
 	
-#5
+#5	Determine how many different guests have made bookings for some part of
+#	March 2009.
 SELECT 
     COUNT(*)
 FROM
@@ -162,12 +202,32 @@ WHERE
         OR MONTH(dateTo) = 03)
         AND YEAR(dateFrom) = 2009
         OR YEAR(dateTo) = 2009;
-		
-#6
+	
+#6	Count how many hotels there are in each city.
 SELECT 
     hotelCity, COUNT(*)
 FROM
     Hotel
 GROUP BY hotelCity;
 
-#7
+#7	List the hotelNo and average price of ‘Standard’ rooms at each hotel.
+
+
+
+#8	List the name of all guests currently staying at the Hilton (use
+#	CURRENT_DATE – see below).
+
+
+
+#9	Count the number of rooms in each hotel in Las Vegas along with the name of
+#	the hotel.
+
+
+
+#10 Count the number of current bookings at each hotel and display with the
+#	hotel name and city. List only the hotels with at least 20 current
+#	bookings.
+
+
+
+#11	List the rooms that are currently unoccupied at the Hilton.
