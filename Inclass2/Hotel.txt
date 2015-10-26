@@ -27,7 +27,7 @@ CREATE TABLE Room (
 CREATE TABLE Guest (
     guestNo INT NOT NULL UNIQUE CHECK (value > 0),
     guestName VARCHAR(60) NOT NULL,
-    guestAddress VARCHAR(60) NOT NULL,
+    guestAddress VARCHAR(60),
     PRIMARY KEY (guestNo)
 );
 
@@ -68,3 +68,29 @@ BEGIN
 	END IF;
 END$$
 DELIMITER ;
+
+INSERT INTO Hotel VALUES (001, 'Hilton', 'Seattle');
+INSERT INTO Hotel VALUES (002, 'Marriot', 'Honolulu');
+INSERT INTO Hotel VALUES (003, 'Best Western', 'Los Angeles');
+INSERT INTO Hotel VALUES (004, 'Super 8', 'Portland');
+
+INSERT INTO Room VALUES (100, 001, 'Suite', 300);
+INSERT INTO Room VALUES (200, 001, 'Double', 250);
+INSERT INTO Room VALUES (300, 001, 'Single', 200);
+INSERT INTO Room VALUES (100, 002, 'Double', 200);
+INSERT INTO Room VALUES (200, 002, 'Single', 150);
+INSERT INTO Room VALUES (100, 003, 'Double', 120);
+INSERT INTO Room VALUES (200, 003, 'Single', 100);
+INSERT INTO Room VALUES (100, 004, 'Single', 80);
+
+INSERT INTO Guest VALUES (001, 'Clark Olson', NULL);
+INSERT INTO Guest VALUES (002, 'Julie Tahajian', 'Pasadina, California');
+INSERT INTO Guest VALUES (003, 'Farha Banerjee', 'Dallas, Texas');
+INSERT INTO Guest VALUES (004, 'Ichiro Suzuki', 'New York, New York');
+
+INSERT INTO Booking VALUES (001, 004, '2003-08-10', '2003-08-12', 100);
+INSERT INTO Booking VALUES (004, 001, '2003-11-02', '2003-11-24', 100);
+INSERT INTO Booking VALUES (003, 002, '2004-05-12', '2004-05-16', 200);
+INSERT INTO Booking VALUES (002, 003, '2004-09-29', '2004-10-13', 200);
+INSERT INTO Booking VALUES (001, 004, '2005-12-23', '2005-12-29', 100);
+INSERT INTO Booking VALUES (002, 001, '2005-12-31', '2006-01-02', 300);
