@@ -85,6 +85,8 @@ INSERT INTO Hotel VALUES (001, 'Hilton', 'Seattle');
 INSERT INTO Hotel VALUES (002, 'Marriot', 'Honolulu');
 INSERT INTO Hotel VALUES (003, 'Best Western', 'Los Angeles');
 INSERT INTO Hotel VALUES (004, 'Super 8', 'Portland');
+INSERT INTO Hotel VALUES (005, 'Marriot', 'Seattle');
+INSERT INTO Hotel VALUES (006, 'Best Western', 'Seattle');
 
 INSERT INTO Room VALUES (100, 001, 'Suite', 300);
 INSERT INTO Room VALUES (200, 001, 'Double', 250);
@@ -99,6 +101,10 @@ INSERT INTO Guest VALUES (001, 'Clark Olson', NULL);
 INSERT INTO Guest VALUES (002, 'Julie Tahajian', 'Pasadina, California');
 INSERT INTO Guest VALUES (003, 'Farha Banerjee', 'Dallas, Texas');
 INSERT INTO Guest VALUES (004, 'Ichiro Suzuki', 'New York, New York');
+INSERT INTO Guest VALUES (005, 'T. Vance Roley', 'Seattle, Washington');
+INSERT INTO Guest VALUES (006, 'Brett Holman', 'Seattle, Washington');
+INSERT INTO Guest VALUES (007, 'Zakk Roberts', 'Seattle, Washington');
+INSERT INTO Guest VALUES (008, 'Thomas Dye', 'Seattle, Washington');
 
 INSERT INTO Booking VALUES (001, 004, '2003-08-10', '2003-08-12', 100);
 INSERT INTO Booking VALUES (004, 001, '2003-11-02', '2003-11-24', 100);
@@ -106,6 +112,10 @@ INSERT INTO Booking VALUES (003, 002, '2004-05-12', '2004-05-16', 200);
 INSERT INTO Booking VALUES (002, 003, '2004-09-29', '2004-10-13', 200);
 INSERT INTO Booking VALUES (001, 004, '2005-12-23', '2005-12-29', 100);
 INSERT INTO Booking VALUES (002, 001, '2005-12-31', '2006-01-02', 300);
+INSERT INTO Booking VALUES (003, 007, '2008-03-02', '2008-03-05', 100);
+INSERT INTO Booking VALUES (003, 005, '2009-03-02', '2009-03-05', 100);
+INSERT INTO Booking VALUES (003, 005, '2009-03-27', '2009-03-28', 200);
+INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 100);
 
 /*Add insertions for testing constraints here*/
 
@@ -113,3 +123,51 @@ INSERT INTO Booking VALUES (002, 001, '2005-12-31', '2006-01-02', 300);
 
 /*Add selections here*/
 
+#1
+SELECT 
+    *
+FROM
+    Hotel;
+
+#2
+SELECT 
+    *
+FROM
+    Guest
+WHERE
+    guestAddress LIKE '%Seattle%';
+
+#3
+SELECT 
+    *
+FROM
+    Guest
+WHERE
+    guestAddress LIKE '%Seattle%'
+ORDER BY guestName ASC;
+
+#4
+SELECT 
+    COUNT(*)
+FROM
+    Hotel;
+	
+#5
+SELECT 
+    COUNT(*)
+FROM
+    Booking
+WHERE
+    (MONTH(dateFrom) = 03
+        OR MONTH(dateTo) = 03)
+        AND YEAR(dateFrom) = 2009
+        OR YEAR(dateTo) = 2009;
+		
+#6
+SELECT 
+    hotelCity, COUNT(*)
+FROM
+    Hotel
+GROUP BY hotelCity;
+
+#7
