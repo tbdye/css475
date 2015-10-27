@@ -122,12 +122,23 @@ DELIMITER $$
 CREATE TRIGGER PreventDoubleBooking BEFORE INSERT ON Booking 
 FOR EACH ROW
 BEGIN
-	IF EXISTS (SELECT 1 FROM Booking WHERE
+	DECLARE num_conflicts INTEGER;
+    DECLARE msg VARCHAR(255);
+    
+	SELECT COUNT(*)
+	INTO num_conflicts
+	FROM Booking
+    WHERE
 		H_hotelNo = NEW.H_hotelNo AND
 		R_roomNo = NEW.R_roomNo AND
-		dateFrom <= NEW.dateTo AND
-		dateTo >= NEW.dateFrom) THEN BEGIN
-			END;
+		((dateFrom <= NEW.dateFrom AND dateTo > NEW.dateFrom) OR
+		 (dateFrom < NEW.dateTo AND dateTo >= NEW.dateTo) OR
+		 (dateFrom >= NEW.dateFrom AND dateFrom < NEW.dateTo) OR
+		 (dateTo > NEW.dateFrom AND dateTo <= NEW.dateTo));
+        
+        IF num_conflicts > 0 THEN
+			set msg = "DIE: You broke the rules... I will now Smite you, hold still...";
+			SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
 	END IF;
 END$$
 DELIMITER ;
