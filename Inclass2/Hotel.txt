@@ -31,17 +31,30 @@ Questions
 		regenerate the table or just update it?  Consider the situation when
 		the table has not 20, but 20 million records. 
 
-
+		It's almost always better to alter the table rather than recreate on a
+		live system.  It can be resource intensive and time consuming to move
+		data to temporary tables.  Exporting and reimporting also causes
+		downtime.
 		
 	b.What are the pros and cons of updating the table vs. re-creating it from
 		scratch? 
 
+		Updating a table is good when a system is live with a lot of activity
+		and downtime is not an option.  There is the chance that an applied
+		change will break the database in unexpected ways with newly inserted
+		data.
 		
+		Re-creating tables from scratch allows for clean, potentially elegant
+		deployment.  It may not be a good option if the database is on a live
+		system, or contains lots of information.
+
 
 	c.What could you do if you were not allowed to re-create a table from
 		scratch, i.e., you can only modify it?
 
-
+		The ALTER TABLE statement is used to add, delete, or modify columns in
+		an existing table.  It can be used to add new constraints and checks
+		that were not supplied originally when the table was created.
 
 -----------------------------------------------------------------------------*/
 
