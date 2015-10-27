@@ -42,7 +42,8 @@ Questions
 		Updating a table is good when a system is live with a lot of activity
 		and downtime is not an option.  There is the chance that an applied
 		change will break the database in unexpected ways with newly inserted
-		data.
+		data.  Othertimes, the DBMS does not allow you to make certain changes
+		after the table is created.
 		
 		Re-creating tables from scratch allows for clean, potentially elegant
 		deployment.  It may not be a good option if the database is on a live
