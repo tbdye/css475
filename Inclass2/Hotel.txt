@@ -182,7 +182,29 @@ INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 100);
 
 #Add insertions for testing constraints here-----------------------------------
 
+#Okay with 'Sad' room type
+#INSERT INTO Room VALUES (101, 003, 'Sad', 300);
 
+#Not okay with hotel number 007
+#INSERT INTO Room VALUES (102, 007, 'Single', 350);
+
+#Okay with price of $999
+#INSERT INTO Room VALUES (103, 003, 'Single', 999);
+
+#Okay with price of $0
+#INSERT INTO Room VALUES (103, 003, 'Single', 0);
+
+#Okay with room number 10000
+#INSERT INTO Room VALUES (10000, 003, 'Single', 499);
+
+#Okay with room number 0
+#INSERT INTO Room VALUES (0, 003, 'Single', 350);
+
+#didn't like room number of 10000
+#INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 10000);
+
+#didn't like room number of 0
+#INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 0);
 
 #Add selection statements here-------------------------------------------------
 
