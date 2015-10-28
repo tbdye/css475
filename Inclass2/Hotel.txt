@@ -4,9 +4,8 @@ By:  Brett Holman, T. Vance Roley, Thomas Dye, Zakk Roberts
 Instructor:  Dr. Erika Parsons
 
 Hotel Database
------------------------------------------------------------------------------*/
+-------------------------------------------------------------------------------
 
-/*-----------------------------------------------------------------------------
 Assignment requirements
 1.Create the following domains: 
 	a.Room types could be for instance: Standard, Deluxe, Suite, Single, Double
@@ -25,6 +24,7 @@ Assignment requirements
 		double booked. (This one is tricky!)
 
 -------------------------------------------------------------------------------
+
 Questions
 4.Answer the following: 
 	a.Given that we already have data inside these tables, is it better to
@@ -74,17 +74,17 @@ CREATE TABLE Hotel (
 );
 
 CREATE TABLE Room (
-    roomNo INT NOT NULL CHECK (value BETWEEN 1 AND 9999),
-    H_hotelNo INT NOT NULL CHECK (value IN (SELECT 
+    roomNo INT NOT NULL CHECK (VALUE BETWEEN 1 AND 9999),
+    H_hotelNo INT NOT NULL CHECK (VALUE IN (SELECT 
             hotelNo
         FROM
             Hotel)),
     roomType VARCHAR(8) NOT NULL CHECK (roomType IN ('single' , 'double', 'suite')),
     roomPrice DECIMAL(5 , 2 ) NOT NULL CHECK (value BETWEEN 50 AND 500),
     PRIMARY KEY (roomNo , H_hotelNo),
-	FOREIGN KEY (H_hotelNo)
-		REFERENCES Hotel(hotelNo)
-		ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (H_hotelNo)
+        REFERENCES Hotel (hotelNo)
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 	
 CREATE TABLE Guest (
@@ -125,16 +125,21 @@ BEGIN
 	DECLARE num_conflicts INTEGER;
     DECLARE msg VARCHAR(255);
     
-	SELECT COUNT(*)
-	INTO num_conflicts
-	FROM Booking
-    WHERE
-		H_hotelNo = NEW.H_hotelNo AND
-		R_roomNo = NEW.R_roomNo AND
-		((dateFrom <= NEW.dateFrom AND dateTo > NEW.dateFrom) OR
-		 (dateFrom < NEW.dateTo AND dateTo >= NEW.dateTo) OR
-		 (dateFrom >= NEW.dateFrom AND dateFrom < NEW.dateTo) OR
-		 (dateTo > NEW.dateFrom AND dateTo <= NEW.dateTo));
+	SELECT 
+    COUNT(*)
+INTO num_conflicts FROM
+    Booking
+WHERE
+    H_hotelNo = NEW.H_hotelNo
+        AND R_roomNo = NEW.R_roomNo
+        AND ((dateFrom <= NEW.dateFrom
+        AND dateTo > NEW.dateFrom)
+        OR (dateFrom < NEW.dateTo
+        AND dateTo >= NEW.dateTo)
+        OR (dateFrom >= NEW.dateFrom
+        AND dateFrom < NEW.dateTo)
+        OR (dateTo > NEW.dateFrom
+        AND dateTo <= NEW.dateTo));
         
         IF num_conflicts > 0 THEN
 			set msg = "DIE: You broke the rules... I will now Smite you, hold still...";
@@ -179,6 +184,10 @@ INSERT INTO Booking VALUES (003, 007, '2008-03-02', '2008-03-05', 100);
 INSERT INTO Booking VALUES (003, 005, '2009-03-02', '2009-03-05', 100);
 INSERT INTO Booking VALUES (003, 005, '2009-03-27', '2009-03-28', 200);
 INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 100);
+
+/*-----------------------------------------------------------------------------
+When recreating the table from scratch, don't copy from below this line.
+-----------------------------------------------------------------------------*/
 
 #Add insertions for testing constraints here-----------------------------------
 
