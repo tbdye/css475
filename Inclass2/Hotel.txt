@@ -159,8 +159,14 @@ INSERT INTO Hotel VALUES (006, 'Best Western', 'Seattle');
 INSERT INTO Room VALUES (100, 001, 'Suite', 300);
 INSERT INTO Room VALUES (200, 001, 'Double', 250);
 INSERT INTO Room VALUES (300, 001, 'Single', 200);
+INSERT INTO Room VALUES (301, 001, 'Single', 210);
+INSERT INTO Room VALUES (302, 001, 'Single', 215);
+INSERT INTO Room VALUES (303, 001, 'Single', 208);
 INSERT INTO Room VALUES (100, 002, 'Double', 200);
 INSERT INTO Room VALUES (200, 002, 'Single', 150);
+INSERT INTO Room VALUES (201, 002, 'Single', 130);
+INSERT INTO Room VALUES (202, 002, 'Single', 150);
+INSERT INTO Room VALUES (203, 002, 'Single', 145);
 INSERT INTO Room VALUES (100, 003, 'Double', 120);
 INSERT INTO Room VALUES (200, 003, 'Single', 100);
 INSERT INTO Room VALUES (100, 004, 'Single', 80);
@@ -175,15 +181,18 @@ INSERT INTO Guest VALUES (007, 'Zakk Roberts', 'Seattle, Washington');
 INSERT INTO Guest VALUES (008, 'Thomas Dye', 'Seattle, Washington');
 
 INSERT INTO Booking VALUES (001, 004, '2003-08-10', '2003-08-12', 100);
-INSERT INTO Booking VALUES (004, 001, '2003-11-02', '2003-11-24', 100);
-INSERT INTO Booking VALUES (003, 002, '2004-05-12', '2004-05-16', 200);
-INSERT INTO Booking VALUES (002, 003, '2004-09-29', '2004-10-13', 200);
 INSERT INTO Booking VALUES (001, 004, '2005-12-23', '2005-12-29', 100);
+INSERT INTO Booking VALUES (001, 001, '2015-10-26', '2015-12-31', 300);
+INSERT INTO Booking VALUES (001, 002, '2015-10-26', '2015-12-31', 301);
+INSERT INTO Booking VALUES (001, 003, '2015-10-26', '2015-12-31', 302);
+INSERT INTO Booking VALUES (002, 003, '2004-09-29', '2004-10-13', 200);
 INSERT INTO Booking VALUES (002, 001, '2005-12-31', '2006-01-02', 300);
+INSERT INTO Booking VALUES (003, 002, '2004-05-12', '2004-05-16', 200);
 INSERT INTO Booking VALUES (003, 007, '2008-03-02', '2008-03-05', 100);
 INSERT INTO Booking VALUES (003, 005, '2009-03-02', '2009-03-05', 100);
-INSERT INTO Booking VALUES (003, 005, '2009-03-27', '2009-03-28', 200);
 INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 100);
+INSERT INTO Booking VALUES (003, 005, '2009-03-27', '2009-03-28', 200);
+INSERT INTO Booking VALUES (004, 001, '2003-11-02', '2003-11-24', 100);
 
 /*-----------------------------------------------------------------------------
 When recreating the table from scratch, don't copy from below this line.
@@ -267,13 +276,24 @@ FROM
 GROUP BY hotelCity;
 
 #7	List the hotelNo and average price of ‘Standard’ rooms at each hotel.
-
-
+SELECT 
+    H_hotelNo, roomType, AVG(roomPrice) AS roomAvg
+FROM
+    Room
+WHERE
+    roomType = 'single'
+GROUP BY H_hotelNo;
 
 #8	List the name of all guests currently staying at the Hilton (use
 #	CURRENT_DATE – see below).
-
-
+SELECT 
+    *
+FROM
+    Booking
+WHERE
+    H_hotelNo = '1'
+        AND CURDATE() >= dateFrom
+        AND CURDATE() <= dateTo;
 
 #9	Count the number of rooms in each hotel in Las Vegas along with the name of
 #	the hotel.
