@@ -155,6 +155,9 @@ INSERT INTO Hotel VALUES (003, 'Best Western', 'Los Angeles');
 INSERT INTO Hotel VALUES (004, 'Super 8', 'Portland');
 INSERT INTO Hotel VALUES (005, 'Marriot', 'Seattle');
 INSERT INTO Hotel VALUES (006, 'Best Western', 'Seattle');
+INSERT INTO Hotel VALUES (007, 'Bellagio', 'Las Vegas');
+INSERT INTO Hotel VALUES (008, 'Hilton', 'Las Vegas');
+INSERT INTO Hotel VALUES (009, 'Trump', 'Las Vegas');
 
 INSERT INTO Room VALUES (100, 001, 'Suite', 300);
 INSERT INTO Room VALUES (200, 001, 'Double', 250);
@@ -167,9 +170,23 @@ INSERT INTO Room VALUES (200, 002, 'Single', 150);
 INSERT INTO Room VALUES (201, 002, 'Single', 130);
 INSERT INTO Room VALUES (202, 002, 'Single', 150);
 INSERT INTO Room VALUES (203, 002, 'Single', 145);
+INSERT INTO Room VALUES (204, 002, 'Suite', 300);
+INSERT INTO Room VALUES (418, 002, 'Suite', 488.99);
 INSERT INTO Room VALUES (100, 003, 'Double', 120);
 INSERT INTO Room VALUES (200, 003, 'Single', 100);
 INSERT INTO Room VALUES (100, 004, 'Single', 80);
+INSERT INTO Room VALUES (203, 005, 'Single', 145);
+INSERT INTO Room VALUES (100, 005, 'Double', 120);
+INSERT INTO Room VALUES (200, 006, 'Single', 100);
+INSERT INTO Room VALUES (100, 006, 'Single', 80);
+INSERT INTO Room VALUES (100, 007, 'Single', 85.99);
+INSERT INTO Room VALUES (306, 007, 'Double', 258.99);
+INSERT INTO Room VALUES (418, 007, 'Suite', 488.99);
+INSERT INTO Room VALUES (100, 008, 'Single', 85.99);
+INSERT INTO Room VALUES (306, 008, 'Double', 258.99);
+INSERT INTO Room VALUES (418, 008, 'Suite', 488.99);
+INSERT INTO Room VALUES (100, 009, 'Single', 85.99);
+INSERT INTO Room VALUES (306, 009, 'Double', 258.99);
 
 INSERT INTO Guest VALUES (001, 'Clark Olson', NULL);
 INSERT INTO Guest VALUES (002, 'Julie Tahajian', 'Pasadina, California');
@@ -179,6 +196,8 @@ INSERT INTO Guest VALUES (005, 'T. Vance Roley', 'Seattle, Washington');
 INSERT INTO Guest VALUES (006, 'Brett Holman', 'Seattle, Washington');
 INSERT INTO Guest VALUES (007, 'Zakk Roberts', 'Seattle, Washington');
 INSERT INTO Guest VALUES (008, 'Thomas Dye', 'Seattle, Washington');
+INSERT INTO Guest VALUES (009, 'Marty McFly', 'Hillsdale, California');
+INSERT INTO Guest VALUES (010, 'Biff Tanner', 'Hillsdale, California');
 
 INSERT INTO Booking VALUES (001, 004, '2003-08-10', '2003-08-12', 100);
 INSERT INTO Booking VALUES (001, 004, '2005-12-23', '2005-12-29', 100);
@@ -193,6 +212,14 @@ INSERT INTO Booking VALUES (003, 005, '2009-03-02', '2009-03-05', 100);
 INSERT INTO Booking VALUES (003, 006, '2009-03-27', '2009-03-28', 100);
 INSERT INTO Booking VALUES (003, 005, '2009-03-27', '2009-03-28', 200);
 INSERT INTO Booking VALUES (004, 001, '2003-11-02', '2003-11-24', 100);
+INSERT INTO Booking VALUES (002, 004, '2015-10-27', '2015-12-31', 100);
+INSERT INTO Booking VALUES (002, 005, '2015-10-01', '2015-12-31', 200);
+INSERT INTO Booking VALUES (002, 006, '2015-10-08', '2015-12-31', 201);
+INSERT INTO Booking VALUES (002, 007, '2015-10-07', '2015-12-31', 202);
+INSERT INTO Booking VALUES (002, 008, '2015-10-12', '2015-12-31', 203);
+INSERT INTO Booking VALUES (002, 009, '2015-10-15', '2015-12-31', 418);
+INSERT INTO Booking VALUES (002, 010, '2015-10-15', '2015-12-31', 204);
+
 
 /*-----------------------------------------------------------------------------
 When recreating the table from scratch, don't copy from below this line.
@@ -252,7 +279,7 @@ ORDER BY guestName ASC;
 
 #4	Determine the number of hotels in the database.
 SELECT 
-    COUNT(*)
+    COUNT(*) AS TotalHotels
 FROM
     Hotel;
 	
@@ -265,8 +292,8 @@ FROM
 WHERE
     (MONTH(dateFrom) = 03
         OR MONTH(dateTo) = 03)
-        AND YEAR(dateFrom) = 2009
-        OR YEAR(dateTo) = 2009;
+        AND (YEAR(dateFrom) = 2009
+        OR YEAR(dateTo) = 2009);
 	
 #6	Count how many hotels there are in each city.
 SELECT 
@@ -275,7 +302,7 @@ FROM
     Hotel
 GROUP BY hotelCity;
 
-#7	List the hotelNo and average price of ‘Standard’ rooms at each hotel.
+#7	List the hotelNo and average price of ‘single’ rooms at each hotel.
 SELECT 
     H_hotelNo, roomType, AVG(roomPrice) AS roomAvg
 FROM
@@ -287,23 +314,41 @@ GROUP BY H_hotelNo;
 #8	List the name of all guests currently staying at the Hilton (use
 #	CURRENT_DATE – see below).
 SELECT 
-    *
+    b.H_hotelNo, g.guestName
 FROM
-    Booking
+    Booking b
+        JOIN
+    Guest g ON b.G_guestNo = g.guestNo
 WHERE
-    H_hotelNo = '1'
-        AND CURDATE() >= dateFrom
-        AND CURDATE() <= dateTo;
+    b.H_hotelNo = '1'
+        AND CURDATE() >= b.dateFrom
+        AND CURDATE() <= b.dateTo;
 
 #9	Count the number of rooms in each hotel in Las Vegas along with the name of
 #	the hotel.
-
-
+SELECT 
+    h.hotelName, COUNT(r.roomNo) as RoomCount
+FROM
+    Hotel h
+        JOIN
+    Room r ON h.hotelNo = r.H_hotelNo
+WHERE
+    h.hotelCity = 'Las Vegas'
+GROUP BY h.hotelName;
 
 #10 Count the number of current bookings at each hotel and display with the
 #	hotel name and city. List only the hotels with at least 20 current
 #	bookings.
-
-
+SELECT 
+    H.hotelName, H.hotelCity, COUNT(*) as Bookings
+FROM
+    Booking AS B
+        INNER JOIN
+    Hotel AS H ON B.H_hotelNo = H.hotelNo
+WHERE
+    B.dateFrom <= CURDATE()
+        AND B.dateTo >= CURDATE()
+GROUP BY H.hotelName
+HAVING COUNT(*) >= 5;
 
 #11	List the rooms that are currently unoccupied at the Hilton.
