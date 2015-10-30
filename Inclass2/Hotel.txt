@@ -80,7 +80,7 @@ CREATE TABLE Room (
         FROM
             Hotel)),
     roomType VARCHAR(8) NOT NULL CHECK (roomType IN ('single' , 'double', 'suite')),
-    roomPrice DECIMAL(5 , 2 ) NOT NULL CHECK (value BETWEEN 50 AND 500),
+    roomPrice DECIMAL(5 , 2 ) NOT NULL CHECK (VALUE BETWEEN 50 AND 500),
     PRIMARY KEY (roomNo , H_hotelNo),
     FOREIGN KEY (H_hotelNo)
         REFERENCES Hotel (hotelNo)
@@ -88,23 +88,23 @@ CREATE TABLE Room (
 );
 	
 CREATE TABLE Guest (
-    guestNo INT NOT NULL UNIQUE CHECK (value > 0),
+    guestNo INT NOT NULL UNIQUE CHECK (VALUE > 0),
     guestName VARCHAR(60) NOT NULL,
     guestAddress VARCHAR(60),
     PRIMARY KEY (guestNo)
 );
 
 CREATE TABLE Booking (
-    H_hotelNo INT NOT NULL CHECK (value IN (SELECT 
+    H_hotelNo INT NOT NULL CHECK (VALUE IN (SELECT 
             hotelNo
         FROM
             Hotel)),
-    G_guestNo INT NOT NULL CHECK (value IN (SELECT 
+    G_guestNo INT NOT NULL CHECK (VALUE IN (SELECT 
             guestNo
         FROM
             Guest)),
     dateFrom DATE NOT NULL,
-    dateTo DATE NOT NULL CHECK (value >= dateFrom),
+    dateTo DATE NOT NULL CHECK (VALUE >= dateFrom),
     R_roomNo INT NOT NULL,
     PRIMARY KEY (H_hotelNo , dateFrom , R_roomNo),
     FOREIGN KEY (H_hotelNo)
@@ -320,7 +320,7 @@ FROM
         JOIN
     Guest g ON b.G_guestNo = g.guestNo
 WHERE
-    b.H_hotelNo = '1'
+    b.H_hotelNo = 1
         AND CURDATE() >= b.dateFrom
         AND CURDATE() <= b.dateTo;
 
