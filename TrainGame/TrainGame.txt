@@ -1,1 +1,123 @@
-#Tables to go here.
+SET FOREIGN_KEY_CHECKS = 0;
+#Framework Associations
+DROP TABLE IF EXISTS Modules;
+DROP TABLE IF EXISTS Regions;
+DROP TABLE IF EXISTS MainLines;
+DROP TABLE IF EXISTS Junctions;
+DROP TABLE IF EXISTS Industries;
+DROP TABLE IF EXISTS RollingStockTypes;
+DROP TABLE IF EXISTS ProductTypes;
+DROP TABLE IF EXISTS IndustryProducts;
+DROP TABLE IF EXISTS IndustrySidings;
+DROP TABLE IF EXISTS Yards;
+SET FOREIGN_KEY_CHECKS = 1;
+
+#Framework Associations
+CREATE TABLE IF NOT EXISTS Modules (
+    ModuleName VARCHAR(255) NOT NULL PRIMARY KEY,
+    ModuleOwner VARCHAR(255) NOT NULL,
+    IsAvailable BOOL NOT NULL,
+    ModuleType VARCHAR(10),
+    ModuleShape VARCHAR(10),
+    Description VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS Regions (
+    RegionName VARCHAR(255) NOT NULL PRIMARY KEY,
+    Module VARCHAR(255) NOT NULL,
+    FOREIGN KEY (Module)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS MainLines (
+    LineName VARCHAR(10) NOT NULL PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    IsContiguous BOOL NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Junctions (
+    ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    FromLine VARCHAR(10) NOT NULL,
+    ToLine VARCHAR(10) NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (FromLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ToLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Industries (
+    IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    OnMainLine VARCHAR(10) NOT NULL,
+    IsAvailable BOOL NOT NULL,
+    ActivityLevel INT NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (OnMainLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS RollingStockTypes (
+    CarTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
+    CarLength INT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ProductTypes (
+    ProductTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
+    OnRollingStockType VARCHAR(255) NOT NULL,
+    FOREIGN KEY (OnRollingStockType)
+        REFERENCES RollingStockTypes (CarTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS IndustryProducts (
+    ForIndustry VARCHAR(255) NOT NULL PRIMARY KEY,
+    UsingProductType VARCHAR(255) NOT NULL,
+    IsProducer BOOL NOT NULL,
+    FOREIGN KEY (ForIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (UsingProductType)
+        REFERENCES ProductTypes (ProductTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS IndustrySidings (
+    ForIndustry VARCHAR(255) NOT NULL PRIMARY KEY,
+    ForProductType VARCHAR(255) NOT NULL,
+    SidingNumber INT NOT NULL,
+    SidingLength INT NOT NULL,
+    AvailableLength INT NOT NULL,
+    FOREIGN KEY (ForIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ForProductType)
+        REFERENCES ProductTypes (ProductTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Yards (
+    YardName VARCHAR(255) NOT NULL PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    OnMainLine VARCHAR(10) NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (OnMainLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Game and Session
