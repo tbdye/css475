@@ -1,1 +1,251 @@
-#Test data to go here.
+#Define rolling stock car types
+INSERT INTO RollingStockTypes VALUES ('Box Car', 65);
+INSERT INTO RollingStockTypes VALUES ('Centerbeam Flat', 85);
+INSERT INTO RollingStockTypes VALUES ('Flat Car', 65);
+INSERT INTO RollingStockTypes VALUES ('Gondola', 65);
+INSERT INTO RollingStockTypes VALUES ('Long Hopper', 75);
+INSERT INTO RollingStockTypes VALUES ('Short Hopper', 55);
+INSERT INTO RollingStockTypes VALUES ('Open Hopper', 75);
+INSERT INTO RollingStockTypes VALUES ('Ore Car', 40);
+INSERT INTO RollingStockTypes VALUES ('Reefer', 65);
+INSERT INTO RollingStockTypes VALUES ('Stock Car', 55);
+INSERT INTO RollingStockTypes VALUES ('Tank Car', 65);
+INSERT INTO RollingStockTypes VALUES ('Wood Chip Car', 75);
+
+#Define product types and which rolling stock car type they are carried in.
+INSERT INTO ProductTypes VALUES ('Crates', 'Box Car');
+INSERT INTO ProductTypes VALUES ('Metal', 'Box Car');
+INSERT INTO ProductTypes VALUES ('Paper', 'Box Car');
+INSERT INTO ProductTypes VALUES ('Tools', 'Box Car');
+INSERT INTO ProductTypes VALUES ('General Merchandise', 'Box Car');
+INSERT INTO ProductTypes VALUES ('Lumber', 'Centerbeam Flat');
+INSERT INTO ProductTypes VALUES ('Bulk Equipment', 'Flat Car');
+INSERT INTO ProductTypes VALUES ('Logs', 'Flat Car');
+INSERT INTO ProductTypes VALUES ('Aggregate', 'Gondola');
+INSERT INTO ProductTypes VALUES ('Scrap Metal', 'Gondola');
+INSERT INTO ProductTypes VALUES ('Feed', 'Long Hopper');
+INSERT INTO ProductTypes VALUES ('Fertilizer', 'Long Hopper');
+INSERT INTO ProductTypes VALUES ('Grain', 'Long Hopper');
+INSERT INTO ProductTypes VALUES ('Coal', 'Open Hopper');
+INSERT INTO ProductTypes VALUES ('Gravel', 'Open Hopper');
+INSERT INTO ProductTypes VALUES ('Iron', 'Ore Car');
+INSERT INTO ProductTypes VALUES ('Dairy', 'Reefer');
+INSERT INTO ProductTypes VALUES ('Manufactured Foods', 'Reefer');
+INSERT INTO ProductTypes VALUES ('Meats', 'Reefer');
+INSERT INTO ProductTypes VALUES ('Produce', 'Reefer');
+INSERT INTO ProductTypes VALUES ('Concrete', 'Short Hopper');
+INSERT INTO ProductTypes VALUES ('Plastics', 'Short Hopper');
+INSERT INTO ProductTypes VALUES ('Livestock', 'Stock Car');
+INSERT INTO ProductTypes VALUES ('Chemicals', 'Tank Car');
+INSERT INTO ProductTypes VALUES ('Fuels', 'Tank Car');
+INSERT INTO ProductTypes VALUES ('Gasses', 'Tank Car');
+INSERT INTO ProductTypes VALUES ('Garbage', 'Wood Chip Car');
+INSERT INTO ProductTypes VALUES ('Wood Chips', 'Wood Chip Car');
+
+#Populate the 180 Farms module.
+INSERT INTO Modules VALUES ('180 Farms', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', '180 Farms', TRUE);
+INSERT INTO Industries VALUES ('Half Circle Farms', '180 Farms', 'Red', TRUE, 2);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Fertilizer', TRUE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Dairy', TRUE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Produce', TRUE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Livestock', TRUE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Lumber', FALSE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Bulk Equipment', FALSE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Feed', FALSE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Grain', FALSE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Fuels', FALSE);
+INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Gasses', FALSE);
+INSERT INTO IndustrySidings VALUES ('Half Circle Farms', 1, 600, 600);
+
+#Populate the Bauxen Crate module.
+INSERT INTO Modules VALUES ('Bauxen Crate', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Bauxen Crate', TRUE);
+INSERT INTO MainLines VALUES ('Alternate Blue', 'Bauxen Crate', FALSE);
+INSERT INTO MainLines VALUES ('Yellow', 'Bauxen Crate', FALSE);
+INSERT INTO MainLines VALUES ('Blue', 'Bauxen Crate', FALSE);
+INSERT INTO Junctions VALUES (DEFAULT, 'Bauxen Crate', 'Red', 'Alternate Blue');
+INSERT INTO Junctions VALUES (DEFAULT, 'Bauxen Crate', 'Red', 'Blue');
+INSERT INTO Junctions VALUES (DEFAULT, 'Bauxen Crate', 'Red', 'Yellow');
+INSERT INTO Industries VALUES ('Bauxen Crates', 'Bauxen Crate', 'Red', TRUE, 3);
+INSERT INTO IndustryProducts VALUES ('Bauxen Crates', 'Crates', TRUE);
+INSERT INTO IndustryProducts VALUES ('Bauxen Crates', 'Wood Chips', TRUE);
+INSERT INTO IndustryProducts VALUES ('Bauxen Crates', 'Metal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Bauxen Crates', 'Lumber', FALSE);
+INSERT INTO IndustrySidings VALUES ('Bauxen Crates', 3, 150, 150);
+INSERT INTO IndustrySidings VALUES ('Bauxen Crates', 4, 150, 150);
+
+#Populate the Chesterfield module.
+INSERT INTO Modules VALUES ('Chesterfield', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Chesterfield', TRUE);
+INSERT INTO MainLines VALUES ('Yellow', 'Chesterfield', TRUE);
+INSERT INTO MainLines VALUES ('Blue', 'Chesterfield', TRUE);
+INSERT INTO MainLines VALUES ('Alternate Blue', 'Chesterfield', TRUE);
+INSERT INTO Junctions VALUES (DEFAULT, 'Chesterfield', 'Blue', 'Alternate Blue');
+INSERT INTO Industries VALUES ('Chesterfield Power Plant', 'Chesterfield', 'Red', TRUE, 3);
+INSERT INTO Industries VALUES ('Cobra Golf', 'Chesterfield', 'Blue', TRUE, 2);
+INSERT INTO Industries VALUES ('Kesselring Machine Shop', 'Chesterfield', 'Yellow', TRUE, 1);
+INSERT INTO Industries VALUES ('Max Distributing', 'Chesterfield', 'Yellow', TRUE, 2);
+INSERT INTO Industries VALUES ('Lostry Mine', 'Chesterfield', 'Blue', TRUE, 3);
+INSERT INTO Industries VALUES ('Puget Warehouse', 'Chesterfield', 'Blue', TRUE, 3);
+INSERT INTO Industries VALUES ('Tuggle Manufacturing', 'Chesterfield', 'Yellow', TRUE, 2);
+INSERT INTO Industries VALUES ('Wonder Model Trains', 'Chesterfield', 'Red', TRUE, 1);
+INSERT INTO IndustryProducts VALUES ('Chesterfield Power Plant', 'Bulk Equipment', FALSE);
+INSERT INTO IndustryProducts VALUES ('Chesterfield Power Plant', 'Coal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Cobra Golf', 'Scrap Metal', TRUE);
+INSERT INTO IndustryProducts VALUES ('Cobra Golf', 'Crates', FALSE);
+INSERT INTO IndustryProducts VALUES ('Cobra Golf', 'Metal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Cobra Golf', 'Plastics', FALSE);
+INSERT INTO IndustryProducts VALUES ('Kesselring Machine Shop', 'Bulk Equipment', TRUE);
+INSERT INTO IndustryProducts VALUES ('Kesselring Machine Shop', 'Scrap Metal', TRUE);
+INSERT INTO IndustryProducts VALUES ('Kesselring Machine Shop', 'Crates', FALSE);
+INSERT INTO IndustryProducts VALUES ('Kesselring Machine Shop', 'Metal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Max Distributing', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Max Distributing', 'Crates', FALSE);
+INSERT INTO IndustryProducts VALUES ('Max Distributing', 'Paper', FALSE);
+INSERT INTO IndustryProducts VALUES ('Max Distributing', 'Tools', FALSE);
+INSERT INTO IndustryProducts VALUES ('Lostry Mine', 'Aggregate', TRUE);
+INSERT INTO IndustryProducts VALUES ('Lostry Mine', 'Coal', TRUE);
+INSERT INTO IndustryProducts VALUES ('Lostry Mine', 'Iron', TRUE);
+INSERT INTO IndustryProducts VALUES ('Lostry Mine', 'Tools', FALSE);
+INSERT INTO IndustryProducts VALUES ('Lostry Mine', 'Lumber', FALSE);
+INSERT INTO IndustryProducts VALUES ('Lostry Mine', 'Bulk Equipment', FALSE);
+INSERT INTO IndustryProducts VALUES ('Puget Warehouse', 'General Merchandise', TRUE);
+INSERT INTO IndustryProducts VALUES ('Puget Warehouse', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Scrap Metal', TRUE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Crates', FALSE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Metal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Paper', FALSE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Tools', FALSE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Lumber', FALSE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Plastics', FALSE);
+INSERT INTO IndustryProducts VALUES ('Tuggle Manufacturing', 'Chemicals', FALSE);
+INSERT INTO IndustryProducts VALUES ('Wonder Model Trains', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Wonder Model Trains', 'Metal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Wonder Model Trains', 'Paper', FALSE);
+INSERT INTO IndustryProducts VALUES ('Wonder Model Trains', 'Plastics', FALSE);
+INSERT INTO IndustrySidings VALUES ('Chesterfield Power Plant', 1, 160, 160);
+INSERT INTO IndustrySidings VALUES ('Wonder Model Trains', 1, 160, 160);
+INSERT INTO IndustrySidings VALUES ('Max Distributing', 1, 200, 200);
+INSERT INTO IndustrySidings VALUES ('Tuggle Manufacturing', 1, 200, 200);
+INSERT INTO IndustrySidings VALUES ('Kesselring Machine Shop', 1, 200, 200);
+INSERT INTO IndustrySidings VALUES ('Puget Warehouse', 1, 200, 200);
+INSERT INTO IndustrySidings VALUES ('Cobra Golf', 1, 160, 160);
+INSERT INTO IndustrySidings VALUES ('Lostry Mine', 1, 160, 160);
+
+#Populate the Crossover module.
+INSERT INTO Modules VALUES ('Crossover', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Crossover', TRUE);
+INSERT INTO MainLines VALUES ('Yellow', 'Crossover', TRUE);
+INSERT INTO MainLines VALUES ('Blue', 'Crossover', TRUE);
+INSERT INTO Junctions VALUES (DEFAULT, 'Crossover', 'Red', 'Yellow');
+INSERT INTO Junctions VALUES (DEFAULT, 'Crossover', 'Yellow', 'Blue');
+
+#Populate the Grain Elevator module.
+INSERT INTO Modules VALUES ('Grain Elevator', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Grain Elevator', TRUE);
+INSERT INTO Industries VALUES ('Oatus Elevator', 'Grain Elevator', 'Red', TRUE, 2);
+INSERT INTO IndustryProducts VALUES ('Oatus Elevator', 'Feed', TRUE);
+INSERT INTO IndustryProducts VALUES ('Oatus Elevator', 'Grain', TRUE);
+INSERT INTO IndustrySidings VALUES ('Oatus Elevator', 1, 200, 200);
+
+#Populate the Palin Bridge module.
+INSERT INTO Modules VALUES ('Palin Bridge', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Palin Bridge', TRUE);
+INSERT INTO Industries VALUES ('Palin Interchange', 'Palin Bridge', 'Red', TRUE, 1);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Feed', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Fertilizer', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Grain', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Coal', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Gravel', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Concrete', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Livestock', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Fuels', FALSE);
+INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Gasses', FALSE);
+INSERT INTO IndustrySidings VALUES ('Palin Interchange', 1, 500, 500);
+
+#Populate the Pure Oil module.
+INSERT INTO Modules VALUES ('Pure Oil', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Pure Oil', TRUE);
+INSERT INTO MainLines VALUES ('Alternate Blue', 'Pure Oil', FALSE);
+INSERT INTO MainLines VALUES ('Yellow', 'Pure Oil', FALSE);
+INSERT INTO MainLines VALUES ('Blue', 'Pure Oil', FALSE);
+INSERT INTO Junctions VALUES (DEFAULT, 'Pure Oil', 'Red', 'Alternate Blue');
+INSERT INTO Junctions VALUES (DEFAULT, 'Pure Oil', 'Red', 'Blue');
+INSERT INTO Junctions VALUES (DEFAULT, 'Pure Oil', 'Red', 'Yellow');
+INSERT INTO Industries VALUES ('Sunset Feed', 'Pure Oil', 'Red', TRUE, 3);
+INSERT INTO Industries VALUES ('Pure Oil', 'Pure Oil', 'Red', TRUE, 2);
+INSERT INTO Industries VALUES ('LGP Professionals', 'Pure Oil', 'Red', TRUE, 1);
+INSERT INTO IndustryProducts VALUES ('Pure Oil', 'Fuels', TRUE);
+INSERT INTO IndustryProducts VALUES ('Sunset Feed', 'Feed', TRUE);
+INSERT INTO IndustryProducts VALUES ('Sunset Feed', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Sunset Feed', 'Grain', FALSE);
+INSERT INTO IndustryProducts VALUES ('Sunset Feed', 'Dairy', FALSE);
+INSERT INTO IndustryProducts VALUES ('Sunset Feed', 'Meats', FALSE);
+INSERT INTO IndustryProducts VALUES ('Sunset Feed', 'Produce', FALSE);
+INSERT INTO IndustryProducts VALUES ('LGP Professionals', 'Gasses', TRUE);
+INSERT INTO IndustrySidings VALUES ('Pure Oil', 3, 100, 100);
+INSERT INTO IndustrySidings VALUES ('Pure Oil', 4, 100, 100);
+INSERT INTO IndustrySidings VALUES ('Sunset Feed', 4, 200, 200);
+INSERT INTO IndustrySidings VALUES ('LGP Professionals', 4, 120, 120);
+
+#Populate the Scott Corner module.
+INSERT INTO Modules VALUES ('Scott Corner', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Scott Corner', TRUE);
+INSERT INTO MainLines VALUES ('Yellow', 'Scott Corner', TRUE);
+INSERT INTO MainLines VALUES ('Blue', 'Scott Corner', TRUE);
+
+#Populate the Trainyard Mall module.
+INSERT INTO Modules VALUES ('Trainyard Mall', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Trainyard Mall', TRUE);
+INSERT INTO MainLines VALUES ('Yellow', 'Trainyard Mall', TRUE);
+INSERT INTO MainLines VALUES ('Blue', 'Trainyard Mall', TRUE);
+
+#Populate the Black River Yard module.
+INSERT INTO Modules VALUES ('Black River Yard', 'Mike Donnelly', TRUE, NULL, NULL, NULL);
+INSERT INTO MainLines VALUES ('Red', 'Black River Yard', TRUE);
+INSERT INTO MainLines VALUES ('Green', 'Black River Yard', FALSE);
+INSERT INTO Junctions VALUES (DEFAULT, 'Black River Yard', 'Red', 'Green');
+INSERT INTO Yards VALUE ('Black River Yard', 'Black River Yard', 'Red');
+INSERT INTO Industries VALUES ('MMI Transfer Site 3', 'Black River Yard', 'Green', TRUE, 2);
+INSERT INTO Industries VALUES ('E.E. Aldrin Sawmill', 'Black River Yard', 'Green', TRUE, 2);
+INSERT INTO Industries VALUES ('B.R. Engine House', 'Black River Yard', 'Green', TRUE, 1);
+INSERT INTO Industries VALUES ('Black River MOW Shop', 'Black River Yard', 'Green', TRUE, 1);
+INSERT INTO IndustryProducts VALUES ('B.R. Engine House', 'Scrap Metal', TRUE);
+INSERT INTO IndustryProducts VALUES ('B.R. Engine House', 'Metal', FALSE);
+INSERT INTO IndustryProducts VALUES ('B.R. Engine House', 'Bulk Equipment', FALSE);
+INSERT INTO IndustryProducts VALUES ('Black River MOW Shop', 'Scrap Metal', TRUE);
+INSERT INTO IndustryProducts VALUES ('Black River MOW Shop', 'Garbage', TRUE);
+INSERT INTO IndustryProducts VALUES ('Black River MOW Shop', 'Bulk Equipment', FALSE);
+INSERT INTO IndustryProducts VALUES ('MMI Transfer Site 3', 'General Merchandise', FALSE);
+INSERT INTO IndustryProducts VALUES ('MMI Transfer Site 3', 'Dairy', FALSE);
+INSERT INTO IndustryProducts VALUES ('MMI Transfer Site 3', 'Manufactured Foods', FALSE);
+INSERT INTO IndustryProducts VALUES ('MMI Transfer Site 3', 'Meats', FALSE);
+INSERT INTO IndustryProducts VALUES ('MMI Transfer Site 3', 'Produce', FALSE);
+INSERT INTO IndustryProducts VALUES ('E.E. Aldrin Sawmill', 'Lumber', TRUE);
+INSERT INTO IndustryProducts VALUES ('E.E. Aldrin Sawmill', 'Wood Chips', TRUE);
+INSERT INTO IndustryProducts VALUES ('E.E. Aldrin Sawmill', 'Bulk Equipment', FALSE);
+INSERT INTO IndustryProducts VALUES ('E.E. Aldrin Sawmill', 'Logs', FALSE);
+INSERT INTO IndustrySidings VALUES ('B.R. Engine House', 1, 90, 90);
+INSERT INTO IndustrySidings VALUES ('B.R. Engine House', 3, 200, 200);
+INSERT INTO IndustrySidings VALUES ('MMI Transfer Site 3', 1, 100, 100);
+INSERT INTO IndustrySidings VALUES ('MMI Transfer Site 3', 2, 100, 100);
+INSERT INTO IndustrySidings VALUES ('MMI Transfer Site 3', 3, 150, 150);
+INSERT INTO IndustrySidings VALUES ('E.E. Aldrin Sawmill', 1, 300, 300);
+INSERT INTO SidingAssignments VALUES ('B.R. Engine House', 1, 'Scrap Metal');
+INSERT INTO SidingAssignments VALUES ('MMI Transfer Site 3', 3, 'General Merchandise');
+INSERT INTO SidingAssignments VALUES ('MMI Transfer Site 3', 3, 'Manufactured Foods');
+
+#Add modules into specific regions on the map.
+INSERT INTO Regions VALUES ('West', 'Pure Oil');
+INSERT INTO Regions VALUES ('West', '180 Farms');
+INSERT INTO Regions VALUES ('West', 'Grain Elevator');
+INSERT INTO Regions VALUES ('East', 'Palin Bridge');
+INSERT INTO Regions VALUES ('East', 'Bauxen Crate');
+INSERT INTO Regions VALUES ('East', 'Scott Corner');
+INSERT INTO Regions VALUES ('East', 'Trainyard Mall');
+INSERT INTO Regions VALUES ('East', 'Chesterfield');
+INSERT INTO Regions VALUES ('South', 'Crossover');
+INSERT INTO Regions VALUES ('South', 'Black River Yard');
