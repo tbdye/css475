@@ -249,3 +249,97 @@ INSERT INTO Regions VALUES ('East', 'Trainyard Mall');
 INSERT INTO Regions VALUES ('East', 'Chesterfield');
 INSERT INTO Regions VALUES ('South', 'Crossover');
 INSERT INTO Regions VALUES ('South', 'Black River Yard');
+
+#Initialize Game Session
+
+#Train 1
+INSERT INTO Trains VALUES (1, 455, 0455, 'Black River Yard', DEFAULT, NULL);
+
+INSERT INTO RollingStockCars VALUES ('AA', 'Box Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AA', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 3, 'Tuggle Manufacturing', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AA', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (1, 'AA', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AB', 'Centerbeam Flat', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AB', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Lumber', 'E.E. Aldrin Sawmill', 1, 'Half Circle Farms', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AB', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (1, 'AB', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AC', 'Flat Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AC', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Bulk Equipment', 'Kesselring Machine Shop', 1, 'Half Circle Farms', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AC', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (1, 'AC', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AD', 'Box Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AD', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 3, 'Kesselring Machine Shop', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AD', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (1, 'AD', DEFAULT);
+
+INSERT INTO Crews VALUES ('Brett', NULL);
+INSERT INTO TrainCrews VALUES (1, 'Brett', DEFAULT);
+
+#Train 2
+INSERT INTO Trains VALUES (2, 5342, 5342, 'Black River Yard', DEFAULT, NULL);
+
+INSERT INTO RollingStockCars VALUES ('AE', 'Long Hopper', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AE', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Feed', 'Oatus Elevator', 1, 'Half Circle Farms', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AE', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (2, 'AE', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AF', 'Open Hopper', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AF', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Coal', 'Lostry Mine', 1, 'Palin Interchange', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AF', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (2, 'AF', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AG', 'Box Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AG', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 4, 'Cobra Golf', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AG', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (2, 'AG', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AH', 'Reefer', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AH', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Dairy', 'Half Circle Farms', 1, 'Sunset Feed', 4, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AH', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (2, 'AH', DEFAULT);
+
+INSERT INTO Crews VALUES ('Thomas', NULL);
+INSERT INTO TrainCrews VALUES (2, 'Thomas', DEFAULT);
+
+#Train 3
+INSERT INTO Trains VALUES (3, 116, 1166, 'Black River Yard', DEFAULT, NULL);
+
+INSERT INTO RollingStockCars VALUES ('AI', 'Box Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AI', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 4, 'Max Distributing', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AI', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (3, 'AI', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AJ', 'Stock Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AJ', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Livestock', 'Half Circle Farms', 1, 'Palin Interchange', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AJ', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (3, 'AJ', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AK', 'Tank Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AK', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Fuels', 'Pure Oil', 3, 'Half Circle Farms', 1, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AK', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (3, 'AK', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('AL', 'Box Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('AL', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'General Merchandise', 'Puget Warehouse', 1, 'MMI Transfer Site 3', 3, DEFAULT, NULL, NULL);
+INSERT INTO Waybills VALUES ('AL', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO Consists VALUES (3, 'AL', DEFAULT);
+
+INSERT INTO Crews VALUES ('Zakk', NULL);
+INSERT INTO TrainCrews VALUES (3, 'Zakk', DEFAULT);
+
+#Play Game
