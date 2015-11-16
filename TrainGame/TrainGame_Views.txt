@@ -1,1 +1,1 @@
-#Database tests to go here.
+#Game play and database interactions to go here.
