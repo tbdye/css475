@@ -24,12 +24,23 @@ DROP TABLE IF EXISTS Crews;
 DROP TABLE IF EXISTS TrainCrews;
 SET FOREIGN_KEY_CHECKS = 1;
 
-#Framework Associations
+#Begin Framework Associations
+
+#RollingStockTypes
+#Define a rolling stock car by name and length.
+#Pre-conditions:  None.
+#Assumptions:  CarLength > 0
+#Used by:  ProductTypes, RollingStockCars
 CREATE TABLE IF NOT EXISTS RollingStockTypes (
     CarTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
     CarLength INT NOT NULL
 );
 
+#ProductTypes
+#Define a product type and which rolling stock car type it is carried by.
+#Pre-conditions:  A valid RollingStockTypes entity must exist.
+#Assumptions:  None.
+#Used by:  IndustryProducts, SidingAssignments, Shipments
 CREATE TABLE IF NOT EXISTS ProductTypes (
     ProductTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
     OnRollingStockType VARCHAR(255) NOT NULL,
@@ -38,6 +49,13 @@ CREATE TABLE IF NOT EXISTS ProductTypes (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#Modules
+#Defines properties of a physical space containing industries and railroad.  A
+#module is available if it is part of a layout, but can remain defined and not
+#be available.
+#Pre-conditions:  None.
+#Assumptions:  None.
+#Used by:  Regions, MainLines, Junctions, Industries, Yards, Trains
 CREATE TABLE IF NOT EXISTS Modules (
     ModuleName VARCHAR(255) NOT NULL PRIMARY KEY,
     ModuleOwner VARCHAR(255) NOT NULL,
@@ -47,6 +65,12 @@ CREATE TABLE IF NOT EXISTS Modules (
     Description VARCHAR(255)
 );
 
+#Regions
+#Defines groupings of modules and assigns a common name for the purpose of
+#layout maps.
+#Pre-conditions:  A valid module entity must exist.
+#Assumptions:  None.
+#Used by:  None. (Expected use in version 2.0)
 CREATE TABLE IF NOT EXISTS Regions (
     RegionName VARCHAR(255) NOT NULL,
     Module VARCHAR(255) NOT NULL,
@@ -56,6 +80,13 @@ CREATE TABLE IF NOT EXISTS Regions (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#MainLines
+#Defines a railroad track on a module that allows passage from at least one
+#side of a module.  A main line is contiguous if it allows through traffic to
+#pass over the entirety of a module.
+#Pre-conditions:  A valid module entity must exist.
+#Assumptions:  None.
+#Used by:  Junctions, Industries, Yards
 CREATE TABLE IF NOT EXISTS MainLines (
 	LineName VARCHAR(255) NOT NULL,
     OnModule VARCHAR(255) NOT NULL,
@@ -66,6 +97,13 @@ CREATE TABLE IF NOT EXISTS MainLines (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#Junctions
+#Defines a connection point between two main lines on a module where trains may
+#cross from one main line to another.  Physically, junctions are represented by
+#turnouts.
+#Pre-conditions:  A valid module and two main lines must exist.
+#Assumptions:  FromLine <> ToLine
+#Used by:  None. (Expected use in version 2.0)
 CREATE TABLE IF NOT EXISTS Junctions (
     JunctionID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     OnModule VARCHAR(255) NOT NULL,
@@ -82,6 +120,12 @@ CREATE TABLE IF NOT EXISTS Junctions (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#Yards
+#Defines a collection of tracks used to store trains and rolling stock when not
+#actively being used by crew in a game session.
+#Pre-conditions:  A valid module and main line must exist.
+#Assumptions:  None.
+#Used by:  RollingStockAtYards, Waybills
 CREATE TABLE IF NOT EXISTS Yards (
     YardName VARCHAR(255) NOT NULL PRIMARY KEY,
     OnModule VARCHAR(255) NOT NULL,
@@ -94,6 +138,15 @@ CREATE TABLE IF NOT EXISTS Yards (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#Industries
+#Defines a business, accessable by rail, producing or consuming goods, and
+#transports those goods via rolling stock cars.  Industries have the ability to
+#be disabled during a game session to prevent new shipping orders from being
+#created.  An industry activity level is one parameter that determines the
+#frequency an industry will be selected for a new shipping order.
+#Pre-conditions:  A valid module and main line must exist.
+#Assumptions:  ActivityLevel = {1, 2, 3} where 1 is lowest and 3 is highest.
+#Used by:  IndustryProducts, IndustrySidings, SidingAssignments, Shipments, RollingStockAtIndustries
 CREATE TABLE IF NOT EXISTS Industries (
     IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
     OnModule VARCHAR(255) NOT NULL,
@@ -148,7 +201,7 @@ CREATE TABLE IF NOT EXISTS SidingAssignments (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-#Game and Session
+#Begin Game and Session
 CREATE TABLE IF NOT EXISTS Trains (
     TrainNumber INT NOT NULL PRIMARY KEY,
     LeadPower VARCHAR(255),
