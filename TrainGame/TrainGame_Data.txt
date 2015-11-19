@@ -1,4 +1,14 @@
+#This file contains test data that creates a small model railroad layout, train
+#cars, and players.  Data insertion is handled in a sequence order that is
+#either required by the database or encountered through normal program
+#interaction.  This data, as it is, will only be used for development testing.
+#Normal game operation allows for the application or interface to supply data.
+
+#Section A:  Initalize Game Parameters
+
 #Define rolling stock car types
+#Notes:  For each category of rolling stock in use, declare a car type and car
+#length.
 INSERT INTO RollingStockTypes VALUES ('Box Car', 65);
 INSERT INTO RollingStockTypes VALUES ('Centerbeam Flat', 85);
 INSERT INTO RollingStockTypes VALUES ('Flat Car', 65);
@@ -12,7 +22,9 @@ INSERT INTO RollingStockTypes VALUES ('Stock Car', 55);
 INSERT INTO RollingStockTypes VALUES ('Tank Car', 65);
 INSERT INTO RollingStockTypes VALUES ('Wood Chip Car', 75);
 
-#Define product types and which rolling stock car type they are carried in.
+#Define product type assignments
+#Notes:  For each category of rolling stock car type, multiple product types
+#can be carried.  Declare all product types and rolling stock car associations.
 INSERT INTO ProductTypes VALUES ('Crates', 'Box Car');
 INSERT INTO ProductTypes VALUES ('Metal', 'Box Car');
 INSERT INTO ProductTypes VALUES ('Paper', 'Box Car');
@@ -42,8 +54,17 @@ INSERT INTO ProductTypes VALUES ('Gasses', 'Tank Car');
 INSERT INTO ProductTypes VALUES ('Garbage', 'Wood Chip Car');
 INSERT INTO ProductTypes VALUES ('Wood Chips', 'Wood Chip Car');
 
+#Section B:  Build Layout
+#Notes:  For each module, entities must be built in the following order:
+#Module, MainLines, Junctions (optional), Industries (optional),
+#IndustryProducts (requires Industries), IndustrySidings (requires Industries),
+#SidingAssignments (optional, requires Industries).
+#Modules with industries are not accessible unless all non-optional
+#requirements are declared.  Data declared in this section is likely to remain
+#persistent and will be used across multiple game sessions.
+
 #Populate the 180 Farms module.
-INSERT INTO Modules VALUES ('180 Farms', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('180 Farms', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', '180 Farms', TRUE);
 INSERT INTO Industries VALUES ('Half Circle Farms', '180 Farms', 'Red', TRUE, 2);
 INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Fertilizer', TRUE);
@@ -60,7 +81,7 @@ INSERT INTO IndustryProducts VALUES ('Half Circle Farms', 'Gasses', FALSE);
 INSERT INTO IndustrySidings VALUES ('Half Circle Farms', 1, 600, 600);
 
 #Populate the Bauxen Crate module.
-INSERT INTO Modules VALUES ('Bauxen Crate', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Bauxen Crate', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Bauxen Crate', TRUE);
 INSERT INTO MainLines VALUES ('Alternate Blue', 'Bauxen Crate', FALSE);
 INSERT INTO MainLines VALUES ('Yellow', 'Bauxen Crate', FALSE);
@@ -77,7 +98,7 @@ INSERT INTO IndustrySidings VALUES ('Bauxen Crates', 3, 150, 150);
 INSERT INTO IndustrySidings VALUES ('Bauxen Crates', 4, 150, 150);
 
 #Populate the Chesterfield module.
-INSERT INTO Modules VALUES ('Chesterfield', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Chesterfield', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Chesterfield', TRUE);
 INSERT INTO MainLines VALUES ('Yellow', 'Chesterfield', TRUE);
 INSERT INTO MainLines VALUES ('Blue', 'Chesterfield', TRUE);
@@ -136,7 +157,7 @@ INSERT INTO IndustrySidings VALUES ('Cobra Golf', 1, 160, 160);
 INSERT INTO IndustrySidings VALUES ('Lostry Mine', 1, 160, 160);
 
 #Populate the Crossover module.
-INSERT INTO Modules VALUES ('Crossover', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Crossover', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Crossover', TRUE);
 INSERT INTO MainLines VALUES ('Yellow', 'Crossover', TRUE);
 INSERT INTO MainLines VALUES ('Blue', 'Crossover', TRUE);
@@ -144,7 +165,7 @@ INSERT INTO Junctions VALUES (DEFAULT, 'Crossover', 'Red', 'Yellow');
 INSERT INTO Junctions VALUES (DEFAULT, 'Crossover', 'Yellow', 'Blue');
 
 #Populate the Grain Elevator module.
-INSERT INTO Modules VALUES ('Grain Elevator', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Grain Elevator', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Grain Elevator', TRUE);
 INSERT INTO Industries VALUES ('Oatus Elevator', 'Grain Elevator', 'Red', TRUE, 2);
 INSERT INTO IndustryProducts VALUES ('Oatus Elevator', 'Feed', TRUE);
@@ -152,7 +173,7 @@ INSERT INTO IndustryProducts VALUES ('Oatus Elevator', 'Grain', TRUE);
 INSERT INTO IndustrySidings VALUES ('Oatus Elevator', 1, 200, 200);
 
 #Populate the Palin Bridge module.
-INSERT INTO Modules VALUES ('Palin Bridge', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Palin Bridge', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Palin Bridge', TRUE);
 INSERT INTO Industries VALUES ('Palin Interchange', 'Palin Bridge', 'Red', TRUE, 1);
 INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Feed', FALSE);
@@ -167,7 +188,7 @@ INSERT INTO IndustryProducts VALUES ('Palin Interchange', 'Gasses', FALSE);
 INSERT INTO IndustrySidings VALUES ('Palin Interchange', 1, 500, 500);
 
 #Populate the Pure Oil module.
-INSERT INTO Modules VALUES ('Pure Oil', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Pure Oil', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Pure Oil', TRUE);
 INSERT INTO MainLines VALUES ('Alternate Blue', 'Pure Oil', FALSE);
 INSERT INTO MainLines VALUES ('Yellow', 'Pure Oil', FALSE);
@@ -192,19 +213,19 @@ INSERT INTO IndustrySidings VALUES ('Sunset Feed', 4, 200, 200);
 INSERT INTO IndustrySidings VALUES ('LGP Professionals', 4, 120, 120);
 
 #Populate the Scott Corner module.
-INSERT INTO Modules VALUES ('Scott Corner', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Scott Corner', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Scott Corner', TRUE);
 INSERT INTO MainLines VALUES ('Yellow', 'Scott Corner', TRUE);
 INSERT INTO MainLines VALUES ('Blue', 'Scott Corner', TRUE);
 
 #Populate the Trainyard Mall module.
-INSERT INTO Modules VALUES ('Trainyard Mall', 'Al Lowe', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Trainyard Mall', 'Al Lowe', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Trainyard Mall', TRUE);
 INSERT INTO MainLines VALUES ('Yellow', 'Trainyard Mall', TRUE);
 INSERT INTO MainLines VALUES ('Blue', 'Trainyard Mall', TRUE);
 
 #Populate the Black River Yard module.
-INSERT INTO Modules VALUES ('Black River Yard', 'Mike Donnelly', TRUE, NULL, NULL, NULL);
+INSERT INTO Modules VALUES ('Black River Yard', 'Mike Donnelly', FALSE, NULL, NULL, NULL);
 INSERT INTO MainLines VALUES ('Red', 'Black River Yard', TRUE);
 INSERT INTO MainLines VALUES ('Green', 'Black River Yard', FALSE);
 INSERT INTO Junctions VALUES (DEFAULT, 'Black River Yard', 'Red', 'Green');
@@ -238,6 +259,30 @@ INSERT INTO SidingAssignments VALUES ('B.R. Engine House', 1, 'Scrap Metal');
 INSERT INTO SidingAssignments VALUES ('MMI Transfer Site 3', 3, 'General Merchandise');
 INSERT INTO SidingAssignments VALUES ('MMI Transfer Site 3', 3, 'Manufactured Foods');
 
+#Section C:  Initialize Game Session
+#Notes:  This section contains non-persistent data which typically only exists
+#for a single game session.  An game session is considered active when trains,
+#rolling stock cars, and crews are in existence.  To start a game, select
+#modules that are to be used and declare which region they are to be in.  A
+#locomotive is selected to declare a new train to be used.  Rolling stock for
+#trains must be assigned to a location.  Shipment orders are created on demand
+#based off of current layout and industry parameters.  For each rolling stock
+#car, waybills must be associated with a shipping order before that car is
+#consisted to a train.  For each train, crews are declared and then assigned to
+#a train.  The train and player are then considered to be ready for game play.
+
+#Activate available modules for gameplay.
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = '180 Farms';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Bauxen Crate';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Chesterfield';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Crossover';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Grain Elevator';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Palin Bridge';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Pure Oil';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Scott Corner';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Trainyard Mall';
+UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Black River Yard';
+
 #Add modules into specific regions on the map.
 INSERT INTO Regions VALUES ('West', 'Pure Oil');
 INSERT INTO Regions VALUES ('West', '180 Farms');
@@ -249,8 +294,6 @@ INSERT INTO Regions VALUES ('East', 'Trainyard Mall');
 INSERT INTO Regions VALUES ('East', 'Chesterfield');
 INSERT INTO Regions VALUES ('South', 'Crossover');
 INSERT INTO Regions VALUES ('South', 'Black River Yard');
-
-#Initialize Game Session
 
 #Train 1
 INSERT INTO Trains VALUES (1, 455, 0455, 'Black River Yard', DEFAULT, NULL);
