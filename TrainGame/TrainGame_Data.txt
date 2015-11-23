@@ -286,16 +286,16 @@ INSERT INTO SidingAssignments VALUES ('MMI Transfer Site 3', 3, 'Manufactured Fo
 #a train.  The train and player are then considered to be ready for game play.
 
 #Activate available modules for gameplay.
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = '180 Farms';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Bauxen Crate';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Chesterfield';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Crossover';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Grain Elevator';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Palin Bridge';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Pure Oil';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Scott Corner';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Trainyard Mall';
-UPDATE Modules SET IsAvailable = 'TRUE' WHERE ModuleName = 'Black River Yard';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = '180 Farms';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Bauxen Crate';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Chesterfield';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Crossover';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Grain Elevator';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Palin Bridge';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Pure Oil';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Scott Corner';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Trainyard Mall';
+UPDATE Modules SET IsAvailable = TRUE WHERE ModuleName = 'Black River Yard';
 
 #Add modules into specific regions on the map.
 INSERT INTO Regions VALUES ('West', 'Pure Oil');
