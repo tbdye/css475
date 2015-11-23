@@ -5,6 +5,10 @@
 #Normal game operation allows for the application or interface to supply data.
 
 #Section A:  Initalize Game Parameters
+#
+#Expected Insertion Order:
+#Define all RollingStockTypes.
+#Define all ProductTypes.
 
 #Define rolling stock car types
 #Notes:  For each category of rolling stock in use, declare a car type and car
@@ -62,6 +66,16 @@ INSERT INTO ProductTypes VALUES ('Wood Chips', 'Wood Chip Car');
 #Modules with industries are not accessible unless all non-optional
 #requirements are declared.  Data declared in this section is likely to remain
 #persistent and will be used across multiple game sessions.
+#
+#Expected Insertion Order:
+#Declare Modules.
+#Declare Modules MainLines
+#Declare Modules MainLines Junctions
+#Declare Modules Yards
+#Declare Industries on Modules MainLines
+#Declare IndustryProducts for Industries
+#Declare IndustrySidings for Industries
+#Declare SidingAssignments for Industries IndustrySidings
 
 #Populate the 180 Farms module.
 INSERT INTO Modules VALUES ('180 Farms', 'Al Lowe', FALSE, NULL, NULL, NULL);
@@ -294,6 +308,17 @@ INSERT INTO Regions VALUES ('East', 'Trainyard Mall');
 INSERT INTO Regions VALUES ('East', 'Chesterfield');
 INSERT INTO Regions VALUES ('South', 'Crossover');
 INSERT INTO Regions VALUES ('South', 'Black River Yard');
+
+#Section D:  Game Session
+#
+#Expected Insertion Order:
+#Declare Trains
+#Declare RollingStockCars
+#Declare Shipments
+#Declare Waybills for Shipments on RollingStockCars
+#Declare ConsistedCars for Trains using RollingStockCars
+#Declare Crews
+#Declare TrainCrews associating Crews to Trains
 
 #Train 1
 INSERT INTO Trains VALUES (1, 455, 0455, 'Black River Yard', DEFAULT, NULL);
