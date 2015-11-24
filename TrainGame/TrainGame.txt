@@ -37,6 +37,20 @@ CREATE TABLE IF NOT EXISTS RollingStockTypes (
     CarLength INT NOT NULL
 );
 
+#RollingStockTypes
+#Trigger to ensure that CarLength > 0.
+DELIMITER $$
+CREATE TRIGGER RollingStockTypesTrigger BEFORE INSERT ON RollingStockTypes
+	FOR EACH ROW
+	BEGIN
+		IF NEW.CarLength <= 0
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'CarLength must be greater than 0.';
+		END IF;
+	END$$
+DELIMITER ;
+
 #ProductTypes
 #Define a product type and which rolling stock car type it is carried by.
 #Notes:  None.
