@@ -261,6 +261,23 @@ CREATE TABLE IF NOT EXISTS SidingAssignments (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#SidingAssignments
+#Trigger to ensure the count for total industry sidings at an industry must be at
+#	least 2 before a siding assignment can be applied.
+DELIMITER $$
+CREATE TRIGGER SidingAssignmentsTrigger BEFORE INSERT ON SidingAssignments
+	FOR EACH ROW
+	BEGIN
+		SET @industry = NEW.ForIndustry;
+        SET @sidingCount = (SELECT COUNT(*) FROM IndustrySidings WHERE ForIndustry = @industry GROUP BY ForIndustry);
+        IF @sidingCount < 2
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'At least two sidings must exist at this industry before siding assingments can be applied.';
+		END IF;
+	END$$
+DELIMITER ;
+
 #Begin Game and Session
 
 #Trains
