@@ -1,0 +1,12 @@
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\Database Presentation.exe
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\Database Presentation.exe.config
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\EntityFramework.dll
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\EntityFramework.SqlServer.dll
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\MySql.Data.dll
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\MySql.Data.Entity.EF6.dll
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\EntityFramework.xml
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\EntityFramework.SqlServer.xml
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\obj\Debug\Database Presentation.exe
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\obj\Debug\Database Presentation.pdb
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\bin\Debug\Database Presentation.pdb
+C:\Users\brett_000\documents\visual studio 2013\Projects\Database Presentation\obj\Debug\Database Presentation.csprojResolveAssemblyReference.cache
