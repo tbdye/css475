@@ -137,7 +137,7 @@ namespace Database_Presentation
                             industry.OnMainLine = reader["OnMainLine"].ToString();
 
                             Int32.TryParse(reader["IsAvailable"].ToString(), out value);
-                            industry.isAvaliable = value == 1;
+                            industry.isAvaliable = value == 0;
 
                             Int32.TryParse(reader["ActivityLevel"].ToString(), out value);
                             industry.ActivityLevel = value;
