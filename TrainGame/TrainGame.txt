@@ -190,6 +190,19 @@ CREATE TABLE IF NOT EXISTS Industries (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+DELIMITER $$ 
+CREATE TRIGGER IndustriesTrigger BEFORE INSERT ON Industries
+    FOR EACH ROW
+    BEGIN
+        IF  NEW.ActivityLevel <= 0 OR 
+            NEW.ActivityLevel > 2 
+        THEN 
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Activity Level Must be equal to 1, 2, or 3';
+        END IF;
+    END $$
+DELIMITER ;
+
 #IndustryProducts
 #Defines which product types an industry produces or consumes.
 #Notes:  An industry product entity must be created for each product type
@@ -210,6 +223,26 @@ CREATE TABLE IF NOT EXISTS IndustryProducts (
         REFERENCES ProductTypes (ProductTypeName)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+DELIMITER $$ 
+CREATE TRIGGER IndustrySidingTrigger BEFORE INSERT ON IndustrySidings
+    FOR EACH ROW
+    BEGIN
+        IF (NEW.SidingLength <= 0)
+        THEN 
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Siding length must be a positive, non 0 number!';
+		ELSEIF (NEW.AvailableLength <= 0)
+		THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Avaliable Length must be a positive, non 0 number!';
+		ELSEIF (NEW.AvailableLength > NEW.SidingLength)
+        THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Avaliable Length must be a less than Siding Length!';
+		END IF;
+    END $$
+DELIMITER ;
 
 #IndustrySidings
 #Defines which track siding an industry uses for rolling stock cars.
