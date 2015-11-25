@@ -144,6 +144,20 @@ CREATE TABLE IF NOT EXISTS Junctions (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#Junctions
+#Trigger to ensure that FromLine and ToLine are not the same entities.
+DELIMITER $$
+CREATE TRIGGER JunctionsTrigger BEFORE INSERT ON Junctions
+	FOR EACH ROW
+	BEGIN
+		IF (NEW.FromLine = NEW.ToLine)
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A junction can only exist between two different main lines.';
+		END IF;
+	END$$
+DELIMITER ;
+
 #Yards
 #Defines a collection of tracks used to store trains and rolling stock when not
 #	actively being used by crew in a game session.
@@ -431,6 +445,20 @@ CREATE TABLE IF NOT EXISTS Shipments (
 		REFERENCES IndustrySidings (ForIndustry, SidingNumber)
 		ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+#Shipments
+#Trigger to ensure that FromIndustry and ToIndustry are not the same entities.
+DELIMITER $$
+CREATE TRIGGER ShipmentsTrigger BEFORE INSERT ON Shipments
+	FOR EACH ROW
+	BEGIN
+		IF (NEW.FromIndustry = NEW.ToIndustry)
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A shipment can only be created to service two different industries.';
+		END IF;
+	END$$
+DELIMITER ;
 
 #Waybills
 #Declares the association of a shipping order and a specific rolling stock car.
