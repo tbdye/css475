@@ -190,6 +190,8 @@ CREATE TABLE IF NOT EXISTS Industries (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+#Industries
+#Trigger to ensure that ActivityLevel is limited to values 1, 2, or 3.
 DELIMITER $$ 
 CREATE TRIGGER IndustriesTrigger BEFORE INSERT ON Industries
     FOR EACH ROW
@@ -198,7 +200,7 @@ CREATE TRIGGER IndustriesTrigger BEFORE INSERT ON Industries
             NEW.ActivityLevel > 2 
         THEN 
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Activity Level Must be equal to 1, 2, or 3';
+            SET MESSAGE_TEXT = 'Activity level must be set to 1, 2, or 3.';
         END IF;
     END $$
 DELIMITER ;
@@ -224,26 +226,6 @@ CREATE TABLE IF NOT EXISTS IndustryProducts (
         ON DELETE CASCADE ON UPDATE CASCADE
 );
 
-DELIMITER $$ 
-CREATE TRIGGER IndustrySidingTrigger BEFORE INSERT ON IndustrySidings
-    FOR EACH ROW
-    BEGIN
-        IF (NEW.SidingLength <= 0)
-        THEN 
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Siding length must be a positive, non 0 number!';
-		ELSEIF (NEW.AvailableLength <= 0)
-		THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Avaliable Length must be a positive, non 0 number!';
-		ELSEIF (NEW.AvailableLength > NEW.SidingLength)
-        THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Avaliable Length must be a less than Siding Length!';
-		END IF;
-    END $$
-DELIMITER ;
-
 #IndustrySidings
 #Defines which track siding an industry uses for rolling stock cars.
 #Notes:  An industry must have at least one track siding to be accessable.
@@ -265,6 +247,29 @@ CREATE TABLE IF NOT EXISTS IndustrySidings (
         REFERENCES Industries (IndustryName)
         ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+#IndustrySidings
+#Trigger to ensure siding lengths are positive and non-zero, available length
+#	is positive and non-zero, and available length is less than siding length.
+DELIMITER $$ 
+CREATE TRIGGER IndustrySidingsTrigger BEFORE INSERT ON IndustrySidings
+    FOR EACH ROW
+    BEGIN
+        IF (NEW.SidingLength <= 0)
+        THEN 
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Siding length must be a positive, non-zero number!';
+		ELSEIF (NEW.AvailableLength <= 0)
+		THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Avaliable length must be a positive, non-zero number!';
+		ELSEIF (NEW.AvailableLength > NEW.SidingLength)
+        THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Avaliable length must be a less than siding length!';
+		END IF;
+    END $$
+DELIMITER ;
 
 #SidingAssignments
 #Defines preferences for specific product types going to only specific industry
