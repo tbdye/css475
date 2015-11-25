@@ -211,7 +211,7 @@ CREATE TRIGGER IndustriesTrigger BEFORE INSERT ON Industries
     FOR EACH ROW
     BEGIN
         IF  NEW.ActivityLevel <= 0 OR 
-            NEW.ActivityLevel > 2 
+            NEW.ActivityLevel > 3
         THEN 
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Activity level must be set to 1, 2, or 3.';
@@ -532,4 +532,3 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
         REFERENCES Crews (CrewName)
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
-
