@@ -14,11 +14,11 @@ namespace Database_Presentation
     public class DBHandler
     {
         // Set these values to the specific server before running. 
-        private const string server = "";
-        private const string port = "";
-        private const string schema = "";
-        private const string userName = "";
-        private const string password = "";
+        private const string server = "home.tfenet.com";
+        private const string port = "3306";
+        private const string schema = "css475group";
+        private const string userName = "css475group";
+        private const string password = "b193297cc9c356";
         private string connectionString = string.Format(
             "server={0};port={1};database={2};uid={3};password={4}",
             server,
@@ -207,6 +207,67 @@ namespace Database_Presentation
                 return null;
             }
             return ListOfTrains;
+        }
+
+        public DisplayUserTrain DisplayUserTrainDB(int id)
+        {
+            // Make sproc for this
+            string cmd = String.Format("Select tc.WithCrew, t.DCCAddress, cc.UsingCar, rsc.CarType, s.ProductType, s.ToIndustry from Trains as t "
+                                            +"inner join ConsistedCars as cc "
+                                            +"on cc.OnTrain = t.TrainNumber "
+                                            +"inner join TrainCrews as tc "
+                                            +"on tc.OnTrain = t.TrainNumber "
+                                            +"inner join Waybills as wb "
+                                            +"on wb.OnCar = cc.UsingCar "
+                                            +"inner join Shipments as s "
+                                            +"on s.ShipmentID = wb.USingShipmentID "
+                                            +"inner join RollingStockCars as rsc "
+                                            +"on rsc.CarID = wb.OnCar "
+                                            +"where t.TrainNumber = {0} "
+                                            +"order by t.TrainNumber;", id);
+            var userTrain = new DisplayUserTrain();
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            var value = -1;
+                            reader.Read();
+
+                            userTrain.Crew = (string)reader["WithCrew"];
+
+                            Int32.TryParse(reader["DCCAddress"].ToString(), out value);
+                            userTrain.DCCAddress = value;
+
+                            userTrain.UsingCar.Add((string)reader["UsingCar"]);
+                            userTrain.CarType.Add((string)reader["CarType"]);
+                            userTrain.ProductType.Add((string)reader["ProductType"]);
+                            userTrain.ToIndustry.Add((string)reader["ToIndustry"]);
+
+                            while (reader.Read())
+                            {
+                                userTrain.UsingCar.Add((string)reader["UsingCar"]);
+                                userTrain.CarType.Add((string)reader["CarType"]);
+                                userTrain.ProductType.Add((string)reader["ProductType"]);
+                                userTrain.ToIndustry.Add((string)reader["ToIndustry"]);
+                            }
+
+                        }
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            return userTrain;
         }
 
         public Industry GetIndustryInfoByNameDB(string industryName)
