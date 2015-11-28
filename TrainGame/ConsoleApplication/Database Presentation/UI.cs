@@ -38,6 +38,9 @@ namespace Database_Presentation
                     case 5:
                         GetProductRollingStockTypeByProductTypeName();
                         break;
+                    case 6:
+                        UpdateShipmentInformation();
+                        break;
                     default:
                         Console.WriteLine("Sorry '{0}' was not a good input", numInput);
                         break;
@@ -52,6 +55,16 @@ namespace Database_Presentation
                     return;
                 }
             }
+        }
+
+        private int getInputAndReturnNumber()
+        {
+            int toReturn = 0;
+            while(!Int32.TryParse(Console.ReadLine(), out toReturn))
+            {
+                Console.WriteLine("This input {0} is not a valid input, \nPlease try again", toReturn);
+            }
+            return toReturn;
         }
 
         private string getInput()
@@ -75,6 +88,7 @@ namespace Database_Presentation
             Console.WriteLine("\t3\t\tGet Industry By Name ");
             Console.WriteLine("\t4\t\tGet Junction By ID");
             Console.WriteLine("\t5\t\tGet Product Rolling Stock Type by Product Type Name");
+            Console.WriteLine("\t6\t\tUpdate Shipment Information");
             Console.WriteLine("_________________________________________________________________________________");
             Console.Write("\n\t");
         }
@@ -209,6 +223,67 @@ namespace Database_Presentation
             Console.WriteLine("Rolling Stock Type: " + result);
             Console.WriteLine("____________________________________________________________________");
             EndFunction();
+        }
+
+        private void UpdateShipmentInformation()
+        {
+            Console.Clear();
+            IEnumerable<Shipment> Shipments = DB.GetAllShippingInformationDB();
+            if (Shipments == null)
+            {
+                EndFunctionError();
+                return;
+            }
+            Console.WriteLine("Please select an ID from the folling options:"); 
+            Console.Write("\nID");
+            Console.CursorLeft += 9;
+            Console.WriteLine("Product Type\t\t\tTime Created\t\tTime Picked Up\t\tTime Delivered");
+            Console.WriteLine("--------------------------------------------------------------------------------------------------------------");
+            foreach (var shipment in Shipments)
+            {
+                Console.Write(shipment.ShipmentID);
+                Console.CursorLeft += 11 - shipment.ShipmentID.ToString().Length;
+                Console.Write(shipment.ProductType); // If this is has more than 20 characters stuff will overlap (this is a temp fix)
+                Console.CursorLeft += 20 - shipment.ProductType.Length;
+                Console.Write("\t\t" + shipment.TimeCreated);
+                Console.Write("\t" + shipment.TimePickedUp);
+                Console.WriteLine("\t" + shipment.TimeDelivered);
+            }
+            Console.WriteLine("--------------------------------------------------------------------------------------------------------------\n\n");
+            int idInput = getInputAndReturnNumber();
+            bool goodValue = false;
+            foreach (var shipment in Shipments)
+            {
+                if (idInput == shipment.ShipmentID)
+                {
+                    goodValue = true;
+                    break;
+                }
+            }
+            if (!goodValue)
+            {
+                EndFunctionError();
+                return;
+            }
+
+            Console.WriteLine("Please enter which you would like to update.");
+            Console.WriteLine("\t-Pickup");
+            Console.WriteLine("\t-Delivery");
+            Console.WriteLine("----------------------------------------------");
+            string typeInput = getInput();
+            while (!(typeInput.ToUpper().Equals("PICKUP") || typeInput.ToUpper().Equals("DELIVERY")))
+            {
+                Console.WriteLine("Your input {0} was not a valid input.", typeInput);
+                Console.WriteLine("Pickup, Delivery, or Quit are your three options. Please retry");
+                typeInput = getInput();
+                if (typeInput.ToUpper().Equals("QUIT"))
+                    return;
+            }
+            DB.UpdateShippingTimeStamp(idInput, typeInput.ToUpper());
+            Console.WriteLine("----------------------------------------------");
+            Console.WriteLine("ID: {0} Updated... ", idInput);
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
         }
 
         private void EndFunction()

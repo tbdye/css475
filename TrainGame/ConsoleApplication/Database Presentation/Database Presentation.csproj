@@ -58,6 +58,7 @@
     <Compile Include="DBHandler.cs" />
     <Compile Include="Entities\Industry.cs" />
     <Compile Include="Entities\Junction.cs" />
+    <Compile Include="Entities\Shipment.cs" />
     <Compile Include="Entities\Train.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

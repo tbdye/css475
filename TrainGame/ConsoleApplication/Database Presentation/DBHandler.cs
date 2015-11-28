@@ -14,11 +14,11 @@ namespace Database_Presentation
     public class DBHandler
     {
         // Set these values to the specific server before running. 
-        private const string server = "FIX ME";
-        private const string port = "FIX ME";
-        private const string schema = "FIX ME";
-        private const string userName = "FIX ME";
-        private const string password = "FIX ME";
+        private const string server = "";
+        private const string port = "";
+        private const string schema = "";
+        private const string userName = "";
+        private const string password = "";
         private string connectionString = string.Format(
             "server={0};port={1};database={2};uid={3};password={4}",
             server,
@@ -32,9 +32,89 @@ namespace Database_Presentation
 
         }
 
-        public DBHandler(DbConnection existingConnection, bool contextOwnsConnection)
+        public void UpdateShippingTimeStamp(int id, string type) 
         {
+            string cmd = "";
+            if (type.Equals("PICKUP"))
+            {
+                cmd = String.Format("UPDATE Shipments SET TimePickedUp = CURRENT_TIMESTAMP where ShipmentId = {0}", id);
+            }
+            else if (type.Equals("DELIVERY"))
+            {
+                cmd = String.Format("UPDATE Shipments SET TimePickedUp = CURRENT_TIMESTAMP where ShipmentId = {0}", id);
+            }
+            if (cmd.Equals(""))
+                return;
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
+        public IEnumerable<Shipment> GetAllShippingInformationDB()
+        {
+            string cmd = String.Format("SELECT * FROM Shipments ORDER BY ShipmentID;");
+            List<Shipment> values = new List<Shipment>();
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+                        using (var reader = command.ExecuteReader())
+                        {
+                            int value = 0;
+                            while (reader.Read())
+                            {
+                                var shipment = new Shipment();
+
+                                Int32.TryParse(reader["ShipmentID"].ToString(), out value);
+                                shipment.ShipmentID = value;
+
+                                shipment.ProductType = reader["ProductType"].ToString();
+
+                                shipment.FromIndustry = reader["FromIndustry"].ToString();
+
+                                Int32.TryParse(reader["FromSiding"].ToString(), out value);
+                                shipment.FromSiding = value;
+
+                                shipment.ToIndustry = reader["ToIndustry"].ToString();
+
+                                Int32.TryParse(reader["ToSiding"].ToString(), out value);
+                                shipment.ToSiding = value;
+
+                                shipment.TimeCreated = Convert.ToDateTime(reader["TimeCreated"].ToString());
+
+                                shipment.TimePickedUp = Convert.ToDateTime(reader["TimePickedUp"].ToString());
+
+                                shipment.TimeDelivered = Convert.ToDateTime(reader["TimeDelivered"].ToString());
+
+                                values.Add(shipment);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            return values;
         }
 
         public IEnumerable<string> GetProductTypeForIndustryDB(string Industry)
