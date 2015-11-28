@@ -24,19 +24,22 @@ namespace Database_Presentation
                 switch (numInput)
                 {
                     case 1:
-                        PrintTrainInfoByNumber();
-                        break;
-                    case 2:
                         GetProductByIndustry();
                         break;
-                    case 3:
+                    case 2:
                         GetIndustryByName();
                         break;
-                    case 4:
+                    case 3:
                         GetJunctionByID();
                         break;
-                    case 5:
+                    case 4:
                         GetProductRollingStockTypeByProductTypeName();
+                        break;
+                    case 5:
+                        UpdateShipmentInformation();
+                        break;
+                    case 6:
+                        ReportTrainArrival();
                         break;
                     default:
                         Console.WriteLine("Sorry '{0}' was not a good input", numInput);
@@ -52,6 +55,16 @@ namespace Database_Presentation
                     return;
                 }
             }
+        }
+
+        private int getInputAndReturnNumber()
+        {
+            int toReturn = 0;
+            while(!Int32.TryParse(Console.ReadLine(), out toReturn))
+            {
+                Console.WriteLine("This input {0} is not a valid input, \nPlease try again", toReturn);
+            }
+            return toReturn;
         }
 
         private string getInput()
@@ -70,11 +83,12 @@ namespace Database_Presentation
             Console.WriteLine("_________________________________________________________________________________");
             Console.WriteLine("\tOption Number\tOption Name");
             Console.WriteLine("_________________________________________________________________________________\n");
-            Console.WriteLine("\t1\t\tPrint Train info By Number");
-            Console.WriteLine("\t2\t\tGet Product By Industry");
-            Console.WriteLine("\t3\t\tGet Industry By Name ");
-            Console.WriteLine("\t4\t\tGet Junction By ID");
-            Console.WriteLine("\t5\t\tGet Product Rolling Stock Type by Product Type Name");
+            Console.WriteLine("\t1\t\tGet Product By Industry");
+            Console.WriteLine("\t2\t\tGet Industry By Name ");
+            Console.WriteLine("\t3\t\tGet Junction By ID");
+            Console.WriteLine("\t4\t\tGet Product Rolling Stock Type by Product Type Name");
+            Console.WriteLine("\t5\t\tUpdate Shipment Information");
+            Console.WriteLine("\t6\t\tReport Train Arival At Module");
             Console.WriteLine("_________________________________________________________________________________");
             Console.Write("\n\t");
         }
@@ -94,39 +108,7 @@ namespace Database_Presentation
                 default: 
                     return -1;
         }
-            int value;
-            string input = Console.ReadLine();
-            while(!Int32.TryParse(input, out value))
-            {
-                Console.WriteLine("Your Input: \n " + input + "\nIs not a valid input, please try again");
-                input = Console.ReadLine();
-            }
-            return value;
-        }
-
-        private void PrintTrainInfoByNumber()
-        {
-            int trainNo = AskForNumber("Train");
-            Train train = DB.GetTrainInfoDB(trainNo).First();
-            if (train == null)
-            {
-                EndFunctionError();
-                return;
-            }
-
-            Console.WriteLine("\tTrain Number: {0} \n\t"
-                                + "Lead Power: {1} \n\t" 
-                                + "DCC Address: {2} \n\t"
-                                + "On Module: {3}\n\t"
-                                + "Time Created: {4}\n\t"
-                                + "Time Updated: {5}\n",
-                                train.TrainNumber,
-                                train.LeadPower,
-                                train.DCCAddress,
-                                train.onModule,
-                                train.TimeCreated,
-                                train.TimeUpdated);
-            EndFunction();
+            return getInputAndReturnNumber();
         }
 
         private void GetProductByIndustry()
@@ -208,6 +190,150 @@ namespace Database_Presentation
             Console.WriteLine("____________________________________________________________________");
             Console.WriteLine("Rolling Stock Type: " + result);
             Console.WriteLine("____________________________________________________________________");
+            EndFunction();
+        }
+
+        private void UpdateShipmentInformation()
+        {
+            Console.Clear();
+            IEnumerable<Shipment> Shipments = DB.GetAllShippingInformationDB();
+            if (Shipments == null)
+            {
+                EndFunctionError();
+                return;
+            }
+            Console.WriteLine("Please select an ID from the folling options:"); 
+            Console.Write("\nID");
+            Console.CursorLeft += 9;
+            Console.WriteLine("Product Type\t\t\tTime Created\t\tTime Picked Up\t\tTime Delivered");
+            Console.WriteLine("--------------------------------------------------------------------------------------------------------------");
+            foreach (var shipment in Shipments)
+            {
+                Console.Write(shipment.ShipmentID);
+                Console.CursorLeft += 11 - shipment.ShipmentID.ToString().Length;
+                Console.Write(shipment.ProductType); // If this is has more than 20 characters stuff will overlap (this is a temp fix)
+                Console.CursorLeft += 20 - shipment.ProductType.Length;
+                Console.Write("\t\t" + shipment.TimeCreated);
+                Console.Write("\t" + shipment.TimePickedUp);
+                Console.WriteLine("\t" + shipment.TimeDelivered);
+            }
+            Console.WriteLine("--------------------------------------------------------------------------------------------------------------\n\n");
+            int idInput = getInputAndReturnNumber();
+            bool goodValue = false;
+            while (!goodValue)
+            {
+                foreach (var shipment in Shipments)
+                {
+                    if (idInput == shipment.ShipmentID)
+                    {
+                        goodValue = true;
+                        break;
+                    }
+                }
+                if (goodValue)
+                    continue;
+                Console.WriteLine("That value {0} was not in the given set, please try again: ", idInput);
+                idInput = getInputAndReturnNumber();
+            }
+
+            Console.WriteLine("Please enter which you would like to update.");
+            Console.WriteLine("\t-Pickup [P]");
+            Console.WriteLine("\t-Delivery [D]");
+            Console.WriteLine("----------------------------------------------");
+            string typeInput = getInput();
+            while (!((typeInput.ToUpper().Equals("PICKUP") || typeInput.ToUpper().Equals("DELIVERY"))
+                    || typeInput.ToUpper().Equals("P") || typeInput.ToUpper().Equals("D")))
+            {
+                Console.WriteLine("Your input {0} was not a valid input.", typeInput);
+                Console.WriteLine("Pickup [P], Delivery [D], or Quit [Q] are your three options. Please retry");
+                typeInput = getInput();
+                if (typeInput.ToUpper().Equals("QUIT") || typeInput.ToUpper().Equals("Q"))
+                    EndFunction();
+            }
+            DB.UpdateShippingTimeStamp(idInput, typeInput.ToUpper());
+            Console.WriteLine("----------------------------------------------");
+            Console.WriteLine("ID: {0} Updated... ", idInput);
+            EndFunction();
+        }
+
+        private void ReportTrainArrival()
+        {
+            Console.Clear();
+            Console.WriteLine("Which Train would you like to update?");
+            IEnumerable<Train> trains = DB.GetTrainInfoDB();
+            if (trains == null)
+            {
+                EndFunctionError();
+            }
+            Console.WriteLine("Train Number\tLead Power\tDCC Address\t\tCurrent Module\t\tLast Updated");
+            Console.WriteLine("----------------------------------------------------------------------------------------------------");
+            foreach (var train in trains)
+            {
+                Console.Write(train.TrainNumber);
+                Console.Write("\t\t" + train.LeadPower);
+                Console.Write("\t\t" + train.DCCAddress);
+                Console.Write("\t\t\t" + train.onModule);
+                Console.WriteLine("\t" + train.TimeUpdated);
+            }
+            Console.Write("\n\nPlease select an Train Number:  ");
+
+            int id = getInputAndReturnNumber();
+            bool goodValue = false;
+            while (!goodValue)
+            {
+                foreach (var train in trains)
+                {
+                    if (id == train.TrainNumber)
+                    {
+                        goodValue = true;
+                        break;
+                    }
+                }
+                if (goodValue)
+                    continue;
+                Console.WriteLine("That value {0} was not in the given set, please try again: ", id);
+                id = getInputAndReturnNumber();
+            }
+
+            Console.WriteLine("Where would you like to update it to? ");
+            IEnumerable<Module> modules = DB.GetModuleInfoDB();
+            Console.WriteLine("Select Number that is next to the desired name");
+            Console.WriteLine("Avaliable Modules");
+            Console.WriteLine("----------------------");
+            // Assumption: Only wanting to print the avaliable modules
+            var count = 0;
+            foreach (var module in modules)
+            {
+                if (!module.IsAvaliable)
+                    continue;
+                Console.Write(++count + ") ");
+                Console.WriteLine(module.Name);
+            }
+
+            Console.WriteLine("---------------------------------------");
+
+            int desiredModuleIndex = getInputAndReturnNumber() - 1;
+            goodValue = false;
+            while (!goodValue)
+            {
+                foreach (var module in modules)
+                {
+                    if (module.Name.Equals(modules.ToList()[desiredModuleIndex].Name))
+                    {
+                        goodValue = true;
+                        break;
+                    }
+                }
+                if (goodValue)
+                    continue;
+                Console.WriteLine("That value {0} was not in the given set, please try again: ", desiredModuleIndex);
+                desiredModuleIndex = getInputAndReturnNumber();
+            }
+
+            DB.UpdateTrainLocation(modules.ToList()[desiredModuleIndex].Name, id);
+
+            Console.WriteLine("Train #{0} has been updated to module {1}.", id, modules.ToList()[desiredModuleIndex].Name);
+            
             EndFunction();
         }
 
