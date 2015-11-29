@@ -1026,7 +1026,7 @@ INSERT INTO Waybills VALUES ('AD', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (1, 'AD', DEFAULT);
 
 INSERT INTO Crews VALUES ('Brett', NULL);
-INSERT INTO TrainCrews VALUES (1, 'Brett', DEFAULT);
+#INSERT INTO TrainCrews VALUES (1, 'Brett', DEFAULT);
 
 #Train 2
 INSERT INTO Trains VALUES (2, 5342, 5342);
@@ -1057,7 +1057,7 @@ INSERT INTO Waybills VALUES ('AH', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (2, 'AH', DEFAULT);
 
 INSERT INTO Crews VALUES ('Thomas', NULL);
-INSERT INTO TrainCrews VALUES (2, 'Thomas', DEFAULT);
+#INSERT INTO TrainCrews VALUES (2, 'Thomas', DEFAULT);
 
 #Train 3
 INSERT INTO Trains VALUES (3, 116, 1166);
@@ -1088,4 +1088,4 @@ INSERT INTO Waybills VALUES ('AL', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (3, 'AL', DEFAULT);
 
 INSERT INTO Crews VALUES ('Zakk', NULL);
-INSERT INTO TrainCrews VALUES (3, 'Zakk', DEFAULT);
+#INSERT INTO TrainCrews VALUES (3, 'Zakk', DEFAULT);
