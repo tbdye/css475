@@ -32,6 +32,9 @@ namespace Database_Presentation
                     case 3:
                         ReportTrainInformation();
                         break;
+                    case 4:
+                        RemoveMainLine();
+                        break;
                     default:
                         Console.WriteLine("Sorry '{0}' was not a good input", numInput);
                         break;
@@ -72,6 +75,7 @@ namespace Database_Presentation
             Console.WriteLine("\t1\t\tUpdate Shipment Information");
             Console.WriteLine("\t2\t\tReport Train Arival At Module");
             Console.WriteLine("\t3\t\tShow Train Report");
+            Console.WriteLine("\t4\t\tDelete Main Line");
             Console.WriteLine("_________________________________________________________________________________");
             Console.Write("\n\t");
         }
@@ -186,6 +190,35 @@ namespace Database_Presentation
 
             Console.WriteLine("Train #{0} has been updated to module {1}.", id, modules.ToList()[desiredModuleIndex].Name);
             
+            EndFunction();
+        }
+
+        private void RemoveMainLine()
+        {
+            Console.Clear();
+            Console.WriteLine("Please Select from the following list to remove:");
+            Console.WriteLine("---------------------------------------------------");
+            List<MainLine> values = DB.GetMainLinesDB().ToList();
+            Console.WriteLine("Name\t\tModule\tContiguous");
+            Console.WriteLine("---------------------------------------------------");
+            var count = 0;
+            foreach (var value in values)
+            {
+                Console.Write("{0}) {1}", ++count, value.Name);
+                Console.Write(" {0}", value.Module);
+                Console.WriteLine(" {0}", value.IsContiguous ? "Yes" : "No");
+            }
+            int indexInput = getInputAndReturnNumber() - 1;
+            Console.WriteLine("You selected the name {0} and the module {1}", values[indexInput].Name, values[indexInput].Module);
+            var result = DB.TryToRemoveMainLineDB(values[indexInput]);
+            if (result)
+            {
+                Console.WriteLine("Main Line successfully removed.");
+            }
+            else
+            {
+                Console.WriteLine("Main Line unable to remove, currently in use.");
+            }
             EndFunction();
         }
 

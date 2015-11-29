@@ -14,11 +14,11 @@ namespace Database_Presentation
     public class DBHandler
     {
         // Set these values to the specific server before running. 
-        private const string server = "home.tfenet.com";
-        private const string port = "3306";
-        private const string schema = "css475group";
-        private const string userName = "css475group";
-        private const string password = "b193297cc9c356";
+        private const string server = "";
+        private const string port = "";
+        private const string schema = "";
+        private const string userName = "";
+        private const string password = "";
         private string connectionString = string.Format(
             "server={0};port={1};database={2};uid={3};password={4}",
             server,
@@ -134,37 +134,6 @@ namespace Database_Presentation
             return values;
         }
 
-        public IEnumerable<string> GetProductTypeForIndustryDB(string Industry)
-        {
-            string cmd = String.Format("SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = '{0}';", Industry);
-            List<string> ListOfProductTypes = new List<string>();
-            try
-            {
-                using (var connection = new MySqlConnection(connectionString))
-                {
-                    connection.Open();
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = cmd;
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                ListOfProductTypes.Add(reader["UsingProductType"].ToString());
-                            }
-                        }
-                    }
-                }
-            }
-            catch (MySql.Data.MySqlClient.MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-            return ListOfProductTypes;
-        }
-
         public IEnumerable<Train> GetTrainInfoDB()
         {
             string cmd = String.Format("SELECT * FROM Trains ORDER BY TrainNumber");
@@ -207,6 +176,41 @@ namespace Database_Presentation
                 return null;
             }
             return ListOfTrains;
+        }
+
+        public IEnumerable<MainLine> GetMainLinesDB()
+        {
+            string cmd = String.Format("SELECT * FROM MainLines ORDER BY LineName;");
+            List<MainLine> values = new List<MainLine>();
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var line = new MainLine();
+                                line.Name = (string)reader["LineName"];
+                                line.Module = (string)reader["OnModule"];
+                                line.IsContiguous = (bool)reader["IsContiguous"];
+                                values.Add(line);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            return values;
         }
 
         public DisplayUserTrain DisplayUserTrainDB(int id)
@@ -270,74 +274,6 @@ namespace Database_Presentation
             return userTrain;
         }
 
-        public Industry GetIndustryInfoByNameDB(string industryName)
-        {
-            string cmd = String.Format("SELECT * FROM Industries WHERE IndustryName = '" + industryName + "';");
-            var industry = new Industry();
-            try
-            {
-                using (var connection = new MySqlConnection(connectionString))
-                {
-                    connection.Open();
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = cmd;
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            reader.Read();
-
-                            industry.IndustryName = reader["IndustryName"].ToString();
-                            industry.OnModule = reader["OnModule"].ToString();
-                            industry.OnMainLine = reader["OnMainLine"].ToString();
-                            industry.isAvaliable = (bool)reader["IsAvailable"];
-                            industry.ActivityLevel = (int)reader["ActivityLevel"];
-                        }
-                    }
-                }
-            }
-            catch (MySql.Data.MySqlClient.MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-            return industry;
-        }
-
-        public Junction GetJunctionInfoByJunctionIDDB(int junctionID)
-        {
-            string cmd = String.Format("SELECT * FROM Junctions WHERE JunctionID = '" + junctionID + "';");
-            var junction = new Junction();
-            try
-            {
-                using (var connection = new MySqlConnection(connectionString))
-                {
-                    connection.Open();
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = cmd;
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            reader.Read();
-                            junction.JunctionID = (int)reader["JunctionID"];
-
-                            junction.OnModule = reader["OnModule"].ToString();
-                            junction.FromLine = reader["FromLine"].ToString();
-                            junction.ToLine = reader["ToLine"].ToString();
-
-                        }
-                    }
-                }
-            }
-            catch (MySql.Data.MySqlClient.MySqlException ex)
-            {
-                Console.WriteLine(ex.Message);
-                return null;
-            }
-            return junction;
-        }
-
         public IEnumerable<Module> GetModuleInfoDB()
         {
             string cmd = String.Format("SELECT * FROM Modules ORDER BY ModuleName;");
@@ -381,10 +317,14 @@ namespace Database_Presentation
             return modules;
         }
 
-        public string GetProductRollingStockTypeByProductTypeNameDB(string typeName)
+        public bool TryToRemoveMainLineDB(MainLine value)
         {
-            string toReturn;
-            string cmd = String.Format("SELECT OnRollingStockType FROM ProductTypes WHERE ProductTypeName = '"+ typeName + "';");
+            return RemoveMainLine(value);
+        }
+
+        private bool RemoveMainLine(MainLine value)
+        {
+            string cmd = String.Format("DELETE FROM MainLines WHERE LineName = '{0}';", value.Name);
             try
             {
                 using (var connection = new MySqlConnection(connectionString))
@@ -393,21 +333,16 @@ namespace Database_Presentation
                     using (var command = connection.CreateCommand())
                     {
                         command.CommandText = cmd;
-
-                        using (var reader = command.ExecuteReader())
-                        {
-                            reader.Read();
-                            toReturn = reader["OnRollingStockType"].ToString();
-                        }
+                        command.ExecuteNonQuery();
                     }
                 }
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {
                 Console.WriteLine(ex.Message);
-                return null;
+                return false;
             }
-            return toReturn;
+            return true;
         }
     }
 }
