@@ -1,0 +1,613 @@
+SET FOREIGN_KEY_CHECKS = 0;
+#Framework Associations
+DROP TABLE IF EXISTS RollingStockTypes;
+DROP TABLE IF EXISTS ProductTypes;
+DROP TABLE IF EXISTS Modules;
+DROP TABLE IF EXISTS ModulesAvailable;
+DROP TABLE IF EXISTS Regions;
+DROP TABLE IF EXISTS MainLines;
+DROP TABLE IF EXISTS Junctions;
+DROP TABLE IF EXISTS Yards;
+DROP TABLE IF EXISTS Industries;
+DROP TABLE IF EXISTS IndustriesAvailable;
+DROP TABLE IF EXISTS IndustryActivities;
+DROP TABLE IF EXISTS IndustryProducts;
+DROP TABLE IF EXISTS IndustrySidings;
+DROP TABLE IF EXISTS SidingsAvailableLength;
+DROP TABLE IF EXISTS SidingAssignments;
+
+#Game and Session
+DROP TABLE IF EXISTS Trains;
+DROP TABLE IF EXISTS TrainLocations;
+DROP TABLE IF EXISTS RollingStockCars;
+DROP TABLE IF EXISTS RollingStockAtYards;
+DROP TABLE IF EXISTS RollingStockAtIndustries;
+DROP TABLE IF EXISTS Shipments;
+DROP TABLE IF EXISTS ShipmentsStatus;
+DROP TABLE IF EXISTS Waybills;
+DROP TABLE IF EXISTS ConsistedCars;
+DROP TABLE IF EXISTS Crews;
+DROP TABLE IF EXISTS TrainCrews;
+SET FOREIGN_KEY_CHECKS = 1;
+
+#Begin Framework Associations
+
+#RollingStockTypes
+#Define a rolling stock car by name and length.
+#Notes:  None.
+#Pre-conditions:  None.
+#Input Constraint:  CarLength > 0
+#Constrains:  ProductTypes, RollingStockCars
+#Assumptions:  CarLength is fully and non-transitively dependent on CarTypeName.  
+CREATE TABLE IF NOT EXISTS RollingStockTypes (
+    CarTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
+    CarLength INT NOT NULL
+);
+
+#RollingStockTypes
+#Trigger to ensure that CarLength > 0.
+DELIMITER $$
+CREATE TRIGGER RollingStockTypesTrigger BEFORE INSERT ON RollingStockTypes
+	FOR EACH ROW
+	BEGIN
+		IF NEW.CarLength <= 0
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'CarLength must be greater than 0.';
+		END IF;
+	END$$
+DELIMITER ;
+
+#ProductTypes
+#Define a product type and which rolling stock car type it is carried by.
+#Notes:  None.
+#Pre-conditions:  A valid RollingStockTypes entity must exist.
+#Input Constraint:  N/A
+#Constrains:  IndustryProducts, SidingAssignments, Shipments
+#Assumptions:  None.
+CREATE TABLE IF NOT EXISTS ProductTypes (
+    ProductTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
+    OnRollingStockType VARCHAR(255) NOT NULL,
+    FOREIGN KEY (OnRollingStockType)
+        REFERENCES RollingStockTypes (CarTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Modules
+#Defines properties of a physical space containing industries and railroad.
+#Notes:  A module is available if it is part of a layout, but can remain
+#	defined and not be available.
+#Pre-conditions:  None.
+#Input Constraint:  N/A
+#Constrains:  ModulesAvailable, Regions, MainLines, Junctions, Industries,
+#	Yards, TrainLocations
+#Assumptions:  ModuleType, ModuleShape, and Description are
+#	optional descriptive attributes that are also fully and non-transitively
+#	dependent on ModuleName.
+CREATE TABLE IF NOT EXISTS Modules (
+    ModuleName VARCHAR(255) NOT NULL PRIMARY KEY,
+    ModuleOwner VARCHAR(255) NOT NULL,
+    ModuleType VARCHAR(10),
+    ModuleShape VARCHAR(10),
+    Description VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS ModulesAvailable (
+    ModuleName VARCHAR(255) NOT NULL PRIMARY KEY,
+    IsAvailable BOOL NOT NULL,
+    FOREIGN KEY (ModuleName)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Regions
+#Defines groupings of modules and assigns a common name for the purpose of
+#	layout maps.
+#Notes:  Regions are used by a routing engine to indicate a path for a train to
+#	follow (version 2.0).  They also provide information to the shipping order
+#	generator to allow for physical layout spacing between load and unload
+#	points (version 2.0).
+#Pre-conditions:  A valid Modules entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  None.
+CREATE TABLE IF NOT EXISTS Regions (
+    RegionName VARCHAR(255) NOT NULL,
+    Module VARCHAR(255) NOT NULL,
+	PRIMARY KEY (RegionName, Module),
+    FOREIGN KEY (Module)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#MainLines
+#Defines a railroad track on a module that allows passage from at least one
+#	side of a module.
+#Notes:  A main line is contiguous if it allows through traffic to pass over
+#	the entirety of a module.  Main lines are used by a routing engine and will
+#	indicate a path for a train to follow (version 2.0).
+#Pre-conditions:  A valid Modules entity must exist.
+#Input Constraint:  N/A
+#Constrains:  Junctions, Industries, Yards
+#Assumptions:  IsContiguous is fully and non-transitively dependent on LineName.
+CREATE TABLE IF NOT EXISTS MainLines (
+	LineName VARCHAR(255) NOT NULL,
+    OnModule VARCHAR(255) NOT NULL,
+    IsContiguous BOOL NOT NULL,
+	PRIMARY KEY (LineName, OnModule),
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Junctions
+#Defines a connection point between two main lines on a module where trains may
+#	cross from one main line to another.
+#Notes:  Physically, junctions are represented by turnouts, and are currently
+#	non-directional in nature.  Junctions are used by a routing engine and will
+#	indicate a path for a train to follow (version 2.0).
+#Pre-conditions:  A valid Modules entity and two MainLines entities must exist.
+#Input Constraint:  FromLine <> ToLine
+#Constrains:  None.
+#Assumptions:  None.
+CREATE TABLE IF NOT EXISTS Junctions (
+    JunctionID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    FromLine VARCHAR(255) NOT NULL,
+    ToLine VARCHAR(255) NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (FromLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ToLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Junctions
+#Trigger to ensure that FromLine and ToLine are not the same entities.
+DELIMITER $$
+CREATE TRIGGER JunctionsTrigger BEFORE INSERT ON Junctions
+	FOR EACH ROW
+	BEGIN
+		IF (NEW.FromLine = NEW.ToLine)
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A junction can only exist between two different main lines.';
+		END IF;
+	END$$
+DELIMITER ;
+
+#Yards
+#Defines a collection of tracks used to store trains and rolling stock when not
+#	actively being used by crew in a game session.
+#Notes:  Yards are the typical origination point of empty rolling stock cars
+#	and the eventual destination for empty rolling stock cars after shipments
+#	have been completed.
+#Pre-conditions:  A valid Modules entity and a MainLines entity must exist.
+#Input Constraint:  N/A
+#Constrains:  RollingStockAtYards, Waybills
+#Assumptions:  None.
+CREATE TABLE IF NOT EXISTS Yards (
+    YardName VARCHAR(255) NOT NULL PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    OnMainLine VARCHAR(255) NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (OnMainLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Industries
+#Defines a business, accessable by rail, producing or consuming goods, and
+#	transports those goods via rolling stock cars.
+#Notes:  None.
+#Pre-conditions:  A valid Modules entity and a MainLines entity must exist.
+#Input Constraints:  N/A
+#Constrains:  IndustriesAvailable, IndustryActivities, IndustryProducts,
+#	IndustrySidings, SidingAssignments, Shipments, RollingStockAtIndustries
+#Assumptions:  None.
+CREATE TABLE IF NOT EXISTS Industries (
+    IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    OnMainLine VARCHAR(255) NOT NULL,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (OnMainLine)
+        REFERENCES MainLines (LineName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#IndustriesAvailable
+#Notes:  Industries have the ability to be disabled during a game session to
+#	prevent new shipping orders from being created.
+CREATE TABLE IF NOT EXISTS IndustriesAvailable (
+    IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
+    IsAvailable BOOL NOT NULL,
+    FOREIGN KEY (IndustryName)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#IndustryActivities
+#Notes:  An industry activity level is one parameter that determines the
+#	frequency an industry will be selected for a new shipping order.
+#Assumptions:  ActivityLevel = {1, 2, 3} where 1 is lowest and 3 is highest.
+CREATE TABLE IF NOT EXISTS IndustryActivities (
+    IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
+    ActivityLevel INT NOT NULL,
+    FOREIGN KEY (IndustryName)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#IndustryActivities
+#Trigger to ensure that ActivityLevel is limited to values 1, 2, or 3.
+DELIMITER $$ 
+CREATE TRIGGER IndustryActivitiesTrigger BEFORE INSERT ON IndustryActivities
+    FOR EACH ROW
+    BEGIN
+        IF  NEW.ActivityLevel <= 0 OR 
+            NEW.ActivityLevel > 3
+        THEN 
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Activity level must be set to 1, 2, or 3.';
+        END IF;
+    END $$
+DELIMITER ;
+
+#IndustryProducts
+#Defines which product types an industry produces or consumes.
+#Notes:  An industry product entity must be created for each product type
+#	served.  If this entity exists and IsProducer is FALSE, then the industry
+#	is a consumer for that product type.
+#Pre-conditions:  A valid Industries entity and a ProductTypes entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  IsProducer is fully and non-transitively dependent on ForIndustry.
+CREATE TABLE IF NOT EXISTS IndustryProducts (
+    ForIndustry VARCHAR(255) NOT NULL,
+    UsingProductType VARCHAR(255) NOT NULL,
+    IsProducer BOOL NOT NULL,
+    PRIMARY KEY (ForIndustry, UsingProductType),
+	FOREIGN KEY (ForIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (UsingProductType)
+        REFERENCES ProductTypes (ProductTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#IndustrySidings
+#Defines which track siding an industry uses for rolling stock cars.
+#Notes:  An industry must have at least one track siding to be accessable.
+#Pre-conditions:  A valid Industries entity must exist.
+#Input Constraints:  SidingLength > 0
+#Constrains:  SidingAssignments, SidingsAvailableLength, Shipments
+#Assumptions:  SidingLength is fully and non-transitively dependent on ForIndustry and SidingNumber.
+CREATE TABLE IF NOT EXISTS IndustrySidings (
+    ForIndustry VARCHAR(255) NOT NULL,
+    SidingNumber INT NOT NULL,
+    SidingLength INT NOT NULL,
+    PRIMARY KEY (ForIndustry , SidingNumber),
+    FOREIGN KEY (ForIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#IndustrySidings
+#Trigger to ensure SidingLength > 0.
+DELIMITER $$ 
+CREATE TRIGGER IndustrySidingsTrigger BEFORE INSERT ON IndustrySidings
+    FOR EACH ROW
+    BEGIN
+        IF (NEW.SidingLength <= 0)
+        THEN 
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Siding length must be greater than 0.';
+		END IF;
+    END $$
+DELIMITER ;
+
+#SidingsAvailableLength
+#Notes:  AvailableLength is used to determine if industries should be considered for
+#	new shipping orders.  If AvailableLength is less than the length of an
+#	incoming rolling stock car, the siding is considered to be "full" and
+#	should not be considered for new shipping orders.
+#Input Constraint:  AvailableLength > 0, AvailableLength <= SidingLength
+CREATE TABLE IF NOT EXISTS SidingsAvailableLength (
+    ForIndustry VARCHAR(255) NOT NULL,
+    SidingNumber INT NOT NULL,
+    AvailableLength INT NOT NULL,
+    PRIMARY KEY (ForIndustry , SidingNumber),
+    FOREIGN KEY (ForIndustry , SidingNumber)
+        REFERENCES IndustrySidings (ForIndustry , SidingNumber)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#SidingsAvailableLength
+#Trigger to ensure AvailableLength > 0 and AvailableLength <= SidingLength
+DELIMITER $$ 
+CREATE TRIGGER SidingsAvailableLengthTrigger BEFORE INSERT ON SidingsAvailableLength
+    FOR EACH ROW
+    BEGIN
+        SET @sidingLength = (SELECT SidingLength FROM IndustrySidings WHERE ForIndustry = NEW.ForIndustry AND SidingNumber = NEW.SidingNumber);
+        IF (NEW.AvailableLength <= 0)
+		THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Avaliable length must be greater than 0.';
+		ELSEIF (NEW.AvailableLength > @sidingLength)
+        THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Value exceeds maximum siding length.';
+		END IF;
+    END $$
+DELIMITER ;
+
+#SidingAssignments
+#Defines preferences for specific product types going to only specific industry
+#	sidings.
+#Notes:  An industry siding will accept all product types for an industry by
+#	default.  Siding assignments will restrict a siding to only authorized
+#	product types.  Siding assignments should not be used unless at least two
+#	industry sidings exist.
+#Pre-conditions:  A valid Industries entity must exist with declared
+#	IndustrySidings entities and ProductTypes entities.
+#Input Constraint:  The count for total industry sidings at an industry must be at
+#	least 2.
+#Constrains:  None.
+#Assumptions:  None.
+CREATE TABLE IF NOT EXISTS SidingAssignments (
+    ForIndustry VARCHAR(255) NOT NULL,
+    SidingNumber INT NOT NULL,
+    ForProductType VARCHAR(255) NOT NULL,
+    PRIMARY KEY (ForIndustry , SidingNumber, ForProductType),
+    FOREIGN KEY (ForIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ForIndustry, SidingNumber)
+        REFERENCES IndustrySidings (ForIndustry, SidingNumber)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ForProductType)
+        REFERENCES ProductTypes (ProductTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#SidingAssignments
+#Trigger to ensure the count for total industry sidings at an industry must be at
+#	least 2 before a siding assignment can be applied.
+DELIMITER $$
+CREATE TRIGGER SidingAssignmentsTrigger BEFORE INSERT ON SidingAssignments
+	FOR EACH ROW
+	BEGIN
+		SET @industry = NEW.ForIndustry;
+        SET @sidingCount = (SELECT COUNT(*) FROM IndustrySidings WHERE ForIndustry = @industry GROUP BY ForIndustry);
+        IF @sidingCount < 2
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'At least two sidings must exist at this industry before siding assingments can be applied.';
+		END IF;
+	END$$
+DELIMITER ;
+
+#Begin Game and Session
+
+#Trains
+#Represents a physical locomotive (or locomotive group) for a player to control
+#	in a game session.
+#Notes:  None.
+#Pre-conditions:  A Modules entity must exist for player origination.
+#Assumptions:  None.
+#Constrains:  TrainLocations, ConsistedCars, TrainCrews
+CREATE TABLE IF NOT EXISTS Trains (
+    TrainNumber INT NOT NULL PRIMARY KEY,
+    LeadPower VARCHAR(255),
+    DCCAddress CHAR(4)
+);
+
+#TrainLocations
+CREATE TABLE IF NOT EXISTS TrainLocations (
+    TrainNumber INT NOT NULL PRIMARY KEY,
+    OnModule VARCHAR(255) NOT NULL,
+    TimeCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    TimeUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (OnModule)
+        REFERENCES Modules (ModuleName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#RollingStockCars
+#Represents a physical train car used by players in a game session.
+#Notes:  None.
+#Pre-conditions:  A valid RollingStockCarTypes entity must exist.
+#Assumptions:  None.
+#Constrains:  RollingStockAtIndustries, RollingStockAtYards, Waybills,
+#	ConsistedCars
+CREATE TABLE IF NOT EXISTS RollingStockCars (
+    CarID VARCHAR(255) NOT NULL PRIMARY KEY,
+    CarType VARCHAR(255) NOT NULL,
+    Description VARCHAR(255),
+    FOREIGN KEY (CarType)
+        REFERENCES RollingStockTypes (CarTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#RollingStockAtYards
+#Declares the identies of rolling stock cars currently at a specific train
+#	yard.
+#Notes:  Rolling stock cars not consisted to a train or reported at an industry
+#	must report at a yard.
+#Pre-conditions:  A valid RollingStockCars entity and Yards entity must exist.
+#Assumptions:  None.
+#Constrains:  None.
+CREATE TABLE IF NOT EXISTS RollingStockAtYards (
+    CarID VARCHAR(255) NOT NULL PRIMARY KEY,
+    AtYard VARCHAR(255) NOT NULL,
+    TimeArrived TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CarID)
+        REFERENCES RollingStockCars (CarID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (AtYard)
+        REFERENCES Yards (YardName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#RollingStockAtIndustries
+#Declares the identities of rolling stock cars current at a specific industry.
+#Notes:  Rolling stock cars not consisted to a train or reported at a yard must
+#	report at an industry.
+#Pre-conditions:  A valid RollingStockCars entity and Industries entity must
+#	exist.
+#Assumptions:  None.
+#Constrains:  None.
+CREATE TABLE IF NOT EXISTS RollingStockAtIndustries (
+    CarID VARCHAR(255) NOT NULL PRIMARY KEY,
+    AtIndustry VARCHAR(255) NOT NULL,
+    TimeArrived TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (CarID)
+        REFERENCES RollingStockCars (CarID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (AtIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Shipments
+#Declares a shipping order of a product type for pickup at one industry and
+#	delivery to another industry.
+#Notes:  Shipping orders are created on demand when rolling stock cars are
+#	added to a game session (version 2.0).
+#Pre-conditions:  A valid ProductTypes entity and two Industries entities must
+#	exist.  For each industry, one IndustrySidings entity must exist.
+#Assumptions:  FromIndustry <> ToIndustry
+#Constrains:  ShipmentsStatus, Waybills
+CREATE TABLE IF NOT EXISTS Shipments (
+    ShipmentID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ProductType VARCHAR(255) NOT NULL,
+    FromIndustry VARCHAR(255) NOT NULL,
+    FromSiding INT NOT NULL,
+    ToIndustry VARCHAR(255) NOT NULL,
+    ToSiding INT NOT NULL,
+    FOREIGN KEY (ProductType)
+        REFERENCES ProductTypes (ProductTypeName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (FromIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (FromIndustry , FromSiding)
+        REFERENCES IndustrySidings (ForIndustry , SidingNumber)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ToIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ToIndustry , ToSiding)
+        REFERENCES IndustrySidings (ForIndustry , SidingNumber)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Shipments
+#Trigger to ensure that FromIndustry and ToIndustry are not the same entities.
+DELIMITER $$
+CREATE TRIGGER ShipmentsTrigger BEFORE INSERT ON Shipments
+	FOR EACH ROW
+	BEGIN
+		IF (NEW.FromIndustry = NEW.ToIndustry)
+		THEN
+			SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A shipment can only be created to service two different industries.';
+		END IF;
+	END$$
+DELIMITER ;
+
+#ShipmentsStatus
+#TimePickedUp as NULL signifies that
+#	item pickup has not occurred.  TimeDelivered as NULL signifies that item
+#	delivery has not occurred.  If TimePickedUp and TimeDelivered are both not
+#	NULL, the shipping order is complete.
+CREATE TABLE IF NOT EXISTS ShipmentsStatus (
+    ShipmentID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    TimeCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    TimePickedUp TIMESTAMP,
+    TimeDelivered TIMESTAMP,
+    FOREIGN KEY (ShipmentID)
+        REFERENCES Shipments (ShipmentID)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#Waybills
+#Declares the association of a shipping order and a specific rolling stock car.
+#Notes:  ReturnToYard determines the location empty rolling stock will be sent
+#	to after the shipping order is complete.
+#Pre-conditions:  At least one valid entity for RollingStockCars, Shipments,
+#	and Yards must exist.
+#Assumptions:  None.
+#Constrains:  None.
+CREATE TABLE IF NOT EXISTS Waybills (
+    OnCar VARCHAR(255) NOT NULL UNIQUE,
+    UsingShipmentID INT NOT NULL,
+    ReturnToYard VARCHAR(255) NOT NULL,
+	PRIMARY KEY (OnCar, UsingShipmentID),
+    FOREIGN KEY (OnCar)
+        REFERENCES RollingStockCars (CarID)
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    FOREIGN KEY (UsingShipmentID)
+        REFERENCES Shipments (ShipmentID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (ReturnToYard)
+        REFERENCES Yards (YardName)
+        ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+#ConsistedCars
+#Represents rolling stock cars attached to trains.
+#Notes:  None.
+#Pre-conditions:  A valid Trains entity must exist, and for each car added, a
+#	RollingStockCars entity must exist.
+#Assumptions:  None.
+#Constrains:  None.
+CREATE TABLE IF NOT EXISTS ConsistedCars (
+    OnTrain INT NOT NULL,
+    UsingCar VARCHAR(255) NOT NULL UNIQUE,
+    TimeAdded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (OnTrain, UsingCar),
+	FOREIGN KEY (OnTrain)
+        REFERENCES Trains (TrainNumber)
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    FOREIGN KEY (UsingCar)
+        REFERENCES RollingStockCars (CarID)
+        ON DELETE NO ACTION ON UPDATE NO ACTION
+);
+
+#Crews
+#Represents a player identity in a game session.
+#Notes:  None.
+#Pre-conditions:  None.
+#Assumptions:  None.
+#Constrains:  TrainCrews
+CREATE TABLE IF NOT EXISTS Crews (
+    CrewName VARCHAR(255) NOT NULL PRIMARY KEY,
+    Description VARCHAR(255)
+);
+
+#TrainCrews
+#Declares the association of a crew with a train.
+#Notes:  None.
+#Pre-conditions:  A valid Trains entity and valid Crews entity must exist.
+#Assumptions:  None.
+#Constrains:  None.
+CREATE TABLE IF NOT EXISTS TrainCrews (
+    OnTrain INT NOT NULL PRIMARY KEY,
+    WithCrew VARCHAR(255) NOT NULL UNIQUE,
+    TimeJoined TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (OnTrain)
+        REFERENCES Trains (TrainNumber)
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    FOREIGN KEY (WithCrew)
+        REFERENCES Crews (CrewName)
+        ON DELETE NO ACTION ON UPDATE NO ACTION
+);
