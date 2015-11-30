@@ -23,7 +23,8 @@ DROP TABLE IF EXISTS RollingStockCars;
 DROP TABLE IF EXISTS RollingStockAtYards;
 DROP TABLE IF EXISTS RollingStockAtIndustries;
 DROP TABLE IF EXISTS Shipments;
-DROP TABLE IF EXISTS ShipmentsStatus;
+DROP TABLE IF EXISTS ShipmentsPickedUp;
+DROP TABLE IF EXISTS ShipmentsDelivered;
 DROP TABLE IF EXISTS Waybills;
 DROP TABLE IF EXISTS ConsistedCars;
 DROP TABLE IF EXISTS Crews;
@@ -38,7 +39,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 #Pre-conditions:  None.
 #Input Constraint:  CarLength > 0
 #Constrains:  ProductTypes, RollingStockCars
-#Assumptions:  CarLength is fully and non-transitively dependent on CarTypeName.  
+#Assumptions:  CarLength is fully and non-transitively dependent on
+#	CarTypeName.
 CREATE TABLE IF NOT EXISTS RollingStockTypes (
     CarTypeName VARCHAR(255) NOT NULL PRIMARY KEY,
     CarLength INT NOT NULL
@@ -75,8 +77,7 @@ CREATE TABLE IF NOT EXISTS ProductTypes (
 
 #Modules
 #Defines properties of a physical space containing industries and railroad.
-#Notes:  A module is available if it is part of a layout, but can remain
-#	defined and not be available.
+#Notes:  None.
 #Pre-conditions:  None.
 #Input Constraint:  N/A
 #Constrains:  ModulesAvailable, Regions, MainLines, Junctions, Industries,
@@ -87,11 +88,20 @@ CREATE TABLE IF NOT EXISTS ProductTypes (
 CREATE TABLE IF NOT EXISTS Modules (
     ModuleName VARCHAR(255) NOT NULL PRIMARY KEY,
     ModuleOwner VARCHAR(255) NOT NULL,
-    ModuleType VARCHAR(10),
-    ModuleShape VARCHAR(10),
+    ModuleType VARCHAR(20),
+    ModuleShape VARCHAR(20),
     Description VARCHAR(255)
 );
 
+#ModulesAvailable
+#Defines the availability of a previously created module.
+#Notes:  A module is available if it is part of a layout, but can remain
+#	defined and not be available.
+#Pre-conditions:  A valid Modules entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  IsAvailable is fully and non-transitively dependent on
+#	ModuleName.
 CREATE TABLE IF NOT EXISTS ModulesAvailable (
     ModuleName VARCHAR(255) NOT NULL PRIMARY KEY,
     IsAvailable BOOL NOT NULL,
@@ -114,7 +124,7 @@ CREATE TABLE IF NOT EXISTS ModulesAvailable (
 CREATE TABLE IF NOT EXISTS Regions (
     RegionName VARCHAR(255) NOT NULL,
     Module VARCHAR(255) NOT NULL,
-	PRIMARY KEY (RegionName, Module),
+    PRIMARY KEY (RegionName , Module),
     FOREIGN KEY (Module)
         REFERENCES Modules (ModuleName)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -129,12 +139,13 @@ CREATE TABLE IF NOT EXISTS Regions (
 #Pre-conditions:  A valid Modules entity must exist.
 #Input Constraint:  N/A
 #Constrains:  Junctions, Industries, Yards
-#Assumptions:  IsContiguous is fully and non-transitively dependent on LineName.
+#Assumptions:  IsContiguous is fully and non-transitively dependent on
+#	LineName.
 CREATE TABLE IF NOT EXISTS MainLines (
-	LineName VARCHAR(255) NOT NULL,
+    LineName VARCHAR(255) NOT NULL,
     OnModule VARCHAR(255) NOT NULL,
     IsContiguous BOOL NOT NULL,
-	PRIMARY KEY (LineName, OnModule),
+    PRIMARY KEY (LineName , OnModule),
     FOREIGN KEY (OnModule)
         REFERENCES Modules (ModuleName)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -224,8 +235,15 @@ CREATE TABLE IF NOT EXISTS Industries (
 );
 
 #IndustriesAvailable
+#Defines the availability of an existing industry to be used in creating new
+#	shipping orders.
 #Notes:  Industries have the ability to be disabled during a game session to
 #	prevent new shipping orders from being created.
+#Pre-conditions:  A valid Industries entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  IsAvailable is fully and non-transitively dependent on
+#	IndustryName.
 CREATE TABLE IF NOT EXISTS IndustriesAvailable (
     IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
     IsAvailable BOOL NOT NULL,
@@ -235,9 +253,14 @@ CREATE TABLE IF NOT EXISTS IndustriesAvailable (
 );
 
 #IndustryActivities
-#Notes:  An industry activity level is one parameter that determines the
-#	frequency an industry will be selected for a new shipping order.
-#Assumptions:  ActivityLevel = {1, 2, 3} where 1 is lowest and 3 is highest.
+#Defines the overall frequency of an existing industry to be considered for new
+#	shipping orders.
+#Pre-conditions:  A valid Industries entity must exist.
+#Input Constraint:  ActivityLevel = {1, 2, 3} where 1 is lowest and 3 is
+#	highest.
+#Constrains:  None.
+#Assumptions:  ActivityLevel is fully and non-transitively dependent on
+#	IndustryName.
 CREATE TABLE IF NOT EXISTS IndustryActivities (
     IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
     ActivityLevel INT NOT NULL,
@@ -266,16 +289,18 @@ DELIMITER ;
 #Notes:  An industry product entity must be created for each product type
 #	served.  If this entity exists and IsProducer is FALSE, then the industry
 #	is a consumer for that product type.
-#Pre-conditions:  A valid Industries entity and a ProductTypes entity must exist.
+#Pre-conditions:  A valid Industries entity and a ProductTypes entity must
+#	exist.
 #Input Constraint:  N/A
 #Constrains:  None.
-#Assumptions:  IsProducer is fully and non-transitively dependent on ForIndustry.
+#Assumptions:  IsProducer is fully and non-transitively dependent on
+#	ForIndustry.
 CREATE TABLE IF NOT EXISTS IndustryProducts (
     ForIndustry VARCHAR(255) NOT NULL,
     UsingProductType VARCHAR(255) NOT NULL,
     IsProducer BOOL NOT NULL,
-    PRIMARY KEY (ForIndustry, UsingProductType),
-	FOREIGN KEY (ForIndustry)
+    PRIMARY KEY (ForIndustry , UsingProductType),
+    FOREIGN KEY (ForIndustry)
         REFERENCES Industries (IndustryName)
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (UsingProductType)
@@ -288,8 +313,9 @@ CREATE TABLE IF NOT EXISTS IndustryProducts (
 #Notes:  An industry must have at least one track siding to be accessable.
 #Pre-conditions:  A valid Industries entity must exist.
 #Input Constraints:  SidingLength > 0
-#Constrains:  SidingAssignments, SidingsAvailableLength, Shipments
-#Assumptions:  SidingLength is fully and non-transitively dependent on ForIndustry and SidingNumber.
+#Constrains:  SidingsAvailableLength, SidingAssignments, Shipments
+#Assumptions:  SidingLength is fully and non-transitively dependent on
+#	ForIndustry and SidingNumber.
 CREATE TABLE IF NOT EXISTS IndustrySidings (
     ForIndustry VARCHAR(255) NOT NULL,
     SidingNumber INT NOT NULL,
@@ -315,11 +341,17 @@ CREATE TRIGGER IndustrySidingsTrigger BEFORE INSERT ON IndustrySidings
 DELIMITER ;
 
 #SidingsAvailableLength
-#Notes:  AvailableLength is used to determine if industries should be considered for
-#	new shipping orders.  If AvailableLength is less than the length of an
-#	incoming rolling stock car, the siding is considered to be "full" and
-#	should not be considered for new shipping orders.
+#Declares the remaining length available for an industry siding when occupied
+#	by rolling stock cars.
+#Notes:  AvailableLength is used to determine if industries should be
+#	considered for new shipping orders.  If AvailableLength is less than the
+#	length of an incoming rolling stock car, the siding is considered to be
+#	"full" and should not be considered for new shipping orders.
+#Pre-conditions:  A valid Industries must exist with at least one declared
+#	IndustrySidings entity.
 #Input Constraint:  AvailableLength > 0, AvailableLength <= SidingLength
+#Assumptions:  AvailableLength is fully and non-transitively dependent on
+#	ForIndustry and SidingNumber.
 CREATE TABLE IF NOT EXISTS SidingsAvailableLength (
     ForIndustry VARCHAR(255) NOT NULL,
     SidingNumber INT NOT NULL,
@@ -358,20 +390,20 @@ DELIMITER ;
 #	industry sidings exist.
 #Pre-conditions:  A valid Industries entity must exist with declared
 #	IndustrySidings entities and ProductTypes entities.
-#Input Constraint:  The count for total industry sidings at an industry must be at
-#	least 2.
+#Input Constraint:  The count for total industry sidings at an industry must be
+#	at least 2.
 #Constrains:  None.
 #Assumptions:  None.
 CREATE TABLE IF NOT EXISTS SidingAssignments (
     ForIndustry VARCHAR(255) NOT NULL,
     SidingNumber INT NOT NULL,
     ForProductType VARCHAR(255) NOT NULL,
-    PRIMARY KEY (ForIndustry , SidingNumber, ForProductType),
+    PRIMARY KEY (ForIndustry , SidingNumber , ForProductType),
     FOREIGN KEY (ForIndustry)
         REFERENCES Industries (IndustryName)
         ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (ForIndustry, SidingNumber)
-        REFERENCES IndustrySidings (ForIndustry, SidingNumber)
+    FOREIGN KEY (ForIndustry , SidingNumber)
+        REFERENCES IndustrySidings (ForIndustry , SidingNumber)
         ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (ForProductType)
         REFERENCES ProductTypes (ProductTypeName)
@@ -400,22 +432,35 @@ DELIMITER ;
 #Trains
 #Represents a physical locomotive (or locomotive group) for a player to control
 #	in a game session.
-#Notes:  None.
+#Notes:  TimeCreated is for reference only and should not be updated.
 #Pre-conditions:  A Modules entity must exist for player origination.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  TrainLocations, ConsistedCars, TrainCrews
+#Assumptions:  LeadPower, DCCAddress, and TimeCreated are fully and
+#	non-transitively dependent on TrainNumber.
 CREATE TABLE IF NOT EXISTS Trains (
     TrainNumber INT NOT NULL PRIMARY KEY,
     LeadPower VARCHAR(255),
-    DCCAddress CHAR(4)
+    DCCAddress CHAR(4),
+    TimeCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 #TrainLocations
+#Represents the location of a train on a layout.
+#Notes:  TimeUpdated will apply the current timestamp automatically with any
+#	activity.
+#Pre-conditions:  A valid Trains entity and Modules entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  OnModule and TimeUpdated is fully and non-transitively dependent
+#	on TrainNumber.
 CREATE TABLE IF NOT EXISTS TrainLocations (
     TrainNumber INT NOT NULL PRIMARY KEY,
     OnModule VARCHAR(255) NOT NULL,
-    TimeCreated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     TimeUpdated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (TrainNumber)
+        REFERENCES Trains (TrainNumber)
+        ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (OnModule)
         REFERENCES Modules (ModuleName)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -425,9 +470,10 @@ CREATE TABLE IF NOT EXISTS TrainLocations (
 #Represents a physical train car used by players in a game session.
 #Notes:  None.
 #Pre-conditions:  A valid RollingStockCarTypes entity must exist.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  RollingStockAtIndustries, RollingStockAtYards, Waybills,
 #	ConsistedCars
+#Assumptions:  None.
 CREATE TABLE IF NOT EXISTS RollingStockCars (
     CarID VARCHAR(255) NOT NULL PRIMARY KEY,
     CarType VARCHAR(255) NOT NULL,
@@ -443,8 +489,9 @@ CREATE TABLE IF NOT EXISTS RollingStockCars (
 #Notes:  Rolling stock cars not consisted to a train or reported at an industry
 #	must report at a yard.
 #Pre-conditions:  A valid RollingStockCars entity and Yards entity must exist.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  None.
+#Assumptions:  TimeArrived is fully and non-transitively dependent on CarID.
 CREATE TABLE IF NOT EXISTS RollingStockAtYards (
     CarID VARCHAR(255) NOT NULL PRIMARY KEY,
     AtYard VARCHAR(255) NOT NULL,
@@ -463,8 +510,9 @@ CREATE TABLE IF NOT EXISTS RollingStockAtYards (
 #	report at an industry.
 #Pre-conditions:  A valid RollingStockCars entity and Industries entity must
 #	exist.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  None.
+#Assumptions:  TimeArrived is fully and non-transitively dependent on CarID.
 CREATE TABLE IF NOT EXISTS RollingStockAtIndustries (
     CarID VARCHAR(255) NOT NULL PRIMARY KEY,
     AtIndustry VARCHAR(255) NOT NULL,
@@ -484,8 +532,9 @@ CREATE TABLE IF NOT EXISTS RollingStockAtIndustries (
 #	added to a game session (version 2.0).
 #Pre-conditions:  A valid ProductTypes entity and two Industries entities must
 #	exist.  For each industry, one IndustrySidings entity must exist.
-#Assumptions:  FromIndustry <> ToIndustry
+#Input Constraint:  FromIndustry <> ToIndustry
 #Constrains:  ShipmentsStatus, Waybills
+#Assumptions:  None.
 CREATE TABLE IF NOT EXISTS Shipments (
     ShipmentID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     ProductType VARCHAR(255) NOT NULL,
@@ -525,6 +574,15 @@ CREATE TRIGGER ShipmentsTrigger BEFORE INSERT ON Shipments
 DELIMITER ;
 
 #ShipmentsPickedUp
+#Declares if a shipping order has been picked up from an Industry producing a
+#	certain product type.
+#Note:  If this entity exists, the product has been loaded onto a rolling stock
+#	car.
+#Pre-conditions:  A valid Shipments entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  TimePickedUp is fully and non-transitively dependent on
+#	ShipmentID.
 CREATE TABLE IF NOT EXISTS ShipmentsPickedUp (
     ShipmentID INT NOT NULL PRIMARY KEY,
     TimePickedUp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -534,6 +592,15 @@ CREATE TABLE IF NOT EXISTS ShipmentsPickedUp (
 );
 
 #ShipmentsDelivered
+#Declares if a shipping order has been delivered to an Industry consuming a
+#	certain product type.
+#Note:  If this entity exists, the product has been unloaded from a rolling
+#	stock car.
+#Pre-conditions:  A valid Shipments entity must exist.
+#Input Constraint:  N/A
+#Constrains:  None.
+#Assumptions:  TimeDelivered is fully and non-transitively dependent on
+#	ShipmentID.
 CREATE TABLE IF NOT EXISTS ShipmentsDelivered (
     ShipmentID INT NOT NULL PRIMARY KEY,
     TimeDelivered TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -548,8 +615,9 @@ CREATE TABLE IF NOT EXISTS ShipmentsDelivered (
 #	to after the shipping order is complete.
 #Pre-conditions:  At least one valid entity for RollingStockCars, Shipments,
 #	and Yards must exist.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  None.
+#Assumptions:  None.
 CREATE TABLE IF NOT EXISTS Waybills (
     OnCar VARCHAR(255) NOT NULL PRIMARY KEY,
     UsingShipmentID INT NOT NULL,
@@ -566,18 +634,21 @@ CREATE TABLE IF NOT EXISTS Waybills (
 );
 
 #ConsistedCars
-#Represents rolling stock cars attached to trains.
+#Represents the association of individual rolling stock cars attached to
+#	trains.
 #Notes:  None.
 #Pre-conditions:  A valid Trains entity must exist, and for each car added, a
 #	RollingStockCars entity must exist.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  None.
+#Assumptions:  TimeAdded is fully and non-transitively dependent on OnTrain and
+#	UsingCar.
 CREATE TABLE IF NOT EXISTS ConsistedCars (
     OnTrain INT NOT NULL,
     UsingCar VARCHAR(255) NOT NULL UNIQUE,
     TimeAdded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (OnTrain, UsingCar),
-	FOREIGN KEY (OnTrain)
+    PRIMARY KEY (OnTrain , UsingCar),
+    FOREIGN KEY (OnTrain)
         REFERENCES Trains (TrainNumber)
         ON DELETE NO ACTION ON UPDATE NO ACTION,
     FOREIGN KEY (UsingCar)
@@ -589,8 +660,9 @@ CREATE TABLE IF NOT EXISTS ConsistedCars (
 #Represents a player identity in a game session.
 #Notes:  None.
 #Pre-conditions:  None.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  TrainCrews
+#Assumptions:  None.
 CREATE TABLE IF NOT EXISTS Crews (
     CrewName VARCHAR(255) NOT NULL PRIMARY KEY,
     Description VARCHAR(255)
@@ -600,8 +672,10 @@ CREATE TABLE IF NOT EXISTS Crews (
 #Declares the association of a crew with a train.
 #Notes:  None.
 #Pre-conditions:  A valid Trains entity and valid Crews entity must exist.
-#Assumptions:  None.
+#Input Constraint:  N/A
 #Constrains:  None.
+#Assumptions:  WithCrew and TimeJoined is fully and non-transitively dependent
+#	on OnTrain.
 CREATE TABLE IF NOT EXISTS TrainCrews (
     OnTrain INT NOT NULL PRIMARY KEY,
     WithCrew VARCHAR(255) NOT NULL UNIQUE,
@@ -998,8 +1072,8 @@ INSERT INTO Regions VALUES ('North', 'Pure Oil');
 #Declare TrainCrews associating Crews to Trains
 
 #Train 1
-INSERT INTO Trains VALUES (1, 455, 0455);
-INSERT INTO TrainLocations VALUES (1, 'Black River Yard', DEFAULT, NULL);
+INSERT INTO Trains VALUES (1, 455, 0455, DEFAULT);
+INSERT INTO TrainLocations VALUES (1, 'Black River Yard', DEFAULT);
 
 INSERT INTO RollingStockCars VALUES ('AA', 'Box Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AA', 'Black River Yard', DEFAULT);
@@ -1029,8 +1103,8 @@ INSERT INTO Crews VALUES ('Brett', NULL);
 #INSERT INTO TrainCrews VALUES (1, 'Brett', DEFAULT);
 
 #Train 2
-INSERT INTO Trains VALUES (2, 5342, 5342);
-INSERT INTO TrainLocations VALUES (2, 'Black River Yard', DEFAULT, NULL);
+INSERT INTO Trains VALUES (2, 5342, 5342, DEFAULT);
+INSERT INTO TrainLocations VALUES (2, 'Black River Yard', DEFAULT);
 
 INSERT INTO RollingStockCars VALUES ('AE', 'Long Hopper', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AE', 'Black River Yard', DEFAULT);
@@ -1060,8 +1134,8 @@ INSERT INTO Crews VALUES ('Thomas', NULL);
 #INSERT INTO TrainCrews VALUES (2, 'Thomas', DEFAULT);
 
 #Train 3
-INSERT INTO Trains VALUES (3, 116, 1166);
-INSERT INTO TrainLocations VALUES (3, 'Black River Yard', DEFAULT, NULL);
+INSERT INTO Trains VALUES (3, 116, 1166, DEFAULT);
+INSERT INTO TrainLocations VALUES (3, 'Black River Yard', DEFAULT);
 
 INSERT INTO RollingStockCars VALUES ('AI', 'Box Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AI', 'Black River Yard', DEFAULT);
