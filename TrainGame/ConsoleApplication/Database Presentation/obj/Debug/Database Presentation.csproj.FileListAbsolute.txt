@@ -22,3 +22,11 @@ C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\Repository\In-Class\TrainGame
 C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\Repository\In-Class\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\EntityFramework.xml
 C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\Repository\In-Class\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\EntityFramework.SqlServer.xml
 C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\Repository\In-Class\TrainGame\ConsoleApplication\Database Presentation\obj\Debug\Database Presentation.csprojResolveAssemblyReference.cache
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\Database Presentation.exe.config
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\obj\Debug\Database Presentation.csprojResolveAssemblyReference.cache
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\Database Presentation.exe
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\Database Presentation.pdb
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\MySql.Data.dll
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\bin\Debug\MySql.Data.Entity.EF6.dll
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\obj\Debug\Database Presentation.exe
+C:\Users\brett_000\OneDrive\School\Fall 15\CSS 475\css475\TrainGame\ConsoleApplication\Database Presentation\obj\Debug\Database Presentation.pdb

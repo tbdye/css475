@@ -24,16 +24,16 @@ namespace Database_Presentation
                 switch (numInput)
                 {
                     case 1:
-                        UpdateShipmentInformation();
+                        ReportTrainInformationAndCrews();
                         break;
                     case 2:
-                        ReportTrainArrival();
-                        break;
-                    case 3:
-                        ReportTrainInformation();
+
                         break;
                     case 4:
-                        RemoveMainLine();
+
+                        break;
+                    case 5:
+
                         break;
                     default:
                         Console.WriteLine("Sorry '{0}' was not a good input", numInput);
@@ -68,249 +68,86 @@ namespace Database_Presentation
 
         private void PrintOptions()
         {
-            Console.WriteLine("\nChoose an entry");
+            Console.WriteLine("\nTrain Game Main Menu");
             Console.WriteLine("_________________________________________________________________________________");
-            Console.WriteLine("\tOption Number\tOption Name");
+            Console.WriteLine("\t\tNumber\t\tName");
             Console.WriteLine("_________________________________________________________________________________\n");
-            Console.WriteLine("\t1\t\tUpdate Shipment Information");
-            Console.WriteLine("\t2\t\tReport Train Arival At Module");
-            Console.WriteLine("\t3\t\tShow Train Report");
-            Console.WriteLine("\t4\t\tDelete Main Line");
+            Console.WriteLine("Information");
+            Console.WriteLine("_________________________________________________________________________________\n");
+            Console.WriteLine("\t\t1\t\tDisplay all trains and all crew");
+            Console.WriteLine("\t\t2\t\tSelect crew, then select a train");
+            Console.WriteLine("\t\t3\t\tDisplay train information");
+            Console.WriteLine("\t\t4\t\tDisplay rolling stock in a train");
+            Console.WriteLine("\t\t5\t\tDisplay industries and yards from a module\n");
+            Console.WriteLine("_________________________________________________________________________________\n");
+            Console.WriteLine("Game play example");
+            Console.WriteLine("_________________________________________________________________________________\n");
+            Console.WriteLine("\t\t6\t\tMove train from one module to another module");
+            Console.WriteLine("\t\t7\t\tDisplay rolling stock cars at an industry");
+            Console.WriteLine("\t\t8\t\tDrop off rolling stock at an industry on a selected module");
+            Console.WriteLine("\t\t9\t\tPick up rolling stock from an industry on a selected module");
             Console.WriteLine("_________________________________________________________________________________");
-            Console.Write("\n\t");
+            Console.Write("\nPlease enter the number next to your selection (or q to exit):  ");
         }
 
-        private void UpdateShipmentInformation()
-        {
-            Console.Clear();
-            IEnumerable<Shipment> Shipments = DB.GetAllShippingInformationDB();
-            if (Shipments == null)
-            {
-                EndFunctionError();
-                return;
-            }
-            Console.WriteLine("Please select an ID from the folling options:"); 
-            Console.Write("\nID");
-            Console.CursorLeft += 9;
-            Console.WriteLine("Product Type\t\t\tTime Created\t\tTime Picked Up\t\tTime Delivered");
-            Console.WriteLine("--------------------------------------------------------------------------------------------------------------");
-            foreach (var shipment in Shipments)
-            {
-                Console.Write(shipment.ShipmentID);
-                Console.CursorLeft += 11 - shipment.ShipmentID.ToString().Length;
-                Console.Write(shipment.ProductType); // If this is has more than 20 characters stuff will overlap (this is a temp fix)
-                Console.CursorLeft += 20 - shipment.ProductType.Length;
-                Console.Write("\t\t" + shipment.TimeCreated);
-                Console.Write("\t" + shipment.TimePickedUp);
-                Console.WriteLine("\t" + shipment.TimeDelivered);
-            }
-            Console.WriteLine("--------------------------------------------------------------------------------------------------------------\n\n");
-            int idInput = getInputAndReturnNumber();
-            bool goodValue = false;
-            while (!goodValue)
-            {
-                foreach (var shipment in Shipments)
-                {
-                    if (idInput == shipment.ShipmentID)
-                    {
-                        goodValue = true;
-                        break;
-                    }
-                }
-                if (goodValue)
-                    continue;
-                Console.WriteLine("That value {0} was not in the given set, please try again: ", idInput);
-                idInput = getInputAndReturnNumber();
-            }
-
-            Console.WriteLine("Please enter which you would like to update.");
-            Console.WriteLine("\t-Pickup [P]");
-            Console.WriteLine("\t-Delivery [D]");
-            Console.WriteLine("----------------------------------------------");
-            string typeInput = getInput();
-            while (!((typeInput.ToUpper().Equals("PICKUP") || typeInput.ToUpper().Equals("DELIVERY"))
-                    || typeInput.ToUpper().Equals("P") || typeInput.ToUpper().Equals("D")))
-            {
-                Console.WriteLine("Your input {0} was not a valid input.", typeInput);
-                Console.WriteLine("Pickup [P], Delivery [D], or Quit [Q] are your three options. Please retry");
-                typeInput = getInput();
-                if (typeInput.ToUpper().Equals("QUIT") || typeInput.ToUpper().Equals("Q"))
-                    EndFunction();
-            }
-            DB.UpdateShippingTimeStamp(idInput, typeInput.ToUpper());
-            Console.WriteLine("----------------------------------------------");
-            Console.WriteLine("ID: {0} Updated... ", idInput);
-            EndFunction();
-        }
-
-        private void ReportTrainArrival()
-        {
-            Console.Clear();
-            
-            int id = 0;
-            IEnumerable<Train> trains = GetPrintValidateAllTrainInformation(out id);
-            
-
-            Console.WriteLine("Where would you like to update it to? ");
-            IEnumerable<Module> modules = DB.GetModuleInfoDB();
-            Console.WriteLine("Select Number that is next to the desired name");
-            Console.WriteLine("Avaliable Modules");
-            Console.WriteLine("----------------------");
-            // Assumption: Only wanting to print the avaliable modules
-            var count = 0;
-            foreach (var module in modules)
-            {
-                if (!module.IsAvaliable)
-                    continue;
-                Console.Write(++count + ") ");
-                Console.WriteLine(module.Name);
-            }
-
-            Console.WriteLine("---------------------------------------");
-
-            int desiredModuleIndex = getInputAndReturnNumber() - 1;
-            bool goodValue = false;
-            while (!goodValue)
-            {
-                foreach (var module in modules)
-                {
-                    if (module.Name.Equals(modules.ToList()[desiredModuleIndex].Name))
-                    {
-                        goodValue = true;
-                        break;
-                    }
-                }
-                if (goodValue)
-                    continue;
-                Console.WriteLine("That value {0} was not in the given set, please try again: ", desiredModuleIndex);
-                desiredModuleIndex = getInputAndReturnNumber();
-            }
-
-            DB.UpdateTrainLocation(modules.ToList()[desiredModuleIndex].Name, id);
-
-            Console.WriteLine("Train #{0} has been updated to module {1}.", id, modules.ToList()[desiredModuleIndex].Name);
-            
-            EndFunction();
-        }
-
-        private void RemoveMainLine()
-        {
-            Console.Clear();
-            Console.WriteLine("Please Select from the following list to remove:");
-            Console.WriteLine("---------------------------------------------------");
-            List<MainLine> values = DB.GetMainLinesDB().ToList();
-            Console.WriteLine("Name\t\tModule\tContiguous");
-            Console.WriteLine("---------------------------------------------------");
-            var count = 0;
-            foreach (var value in values)
-            {
-                Console.Write("{0}) {1}", ++count, value.Name);
-                Console.Write(" {0}", value.Module);
-                Console.WriteLine(" {0}", value.IsContiguous ? "Yes" : "No");
-            }
-            int indexInput = getInputAndReturnNumber() - 1;
-            Console.WriteLine("You selected the name {0} and the module {1}", values[indexInput].Name, values[indexInput].Module);
-            var result = DB.TryToRemoveMainLineDB(values[indexInput]);
-            if (result)
-            {
-                Console.WriteLine("Main Line successfully removed.");
-            }
-            else
-            {
-                Console.WriteLine("Main Line unable to remove, currently in use.");
-            }
-            EndFunction();
-        }
-
-        private void ReportTrainInformation()
+        // Option 1
+        private void ReportTrainInformationAndCrews()
         {
             Console.Clear();
 
-            int id = 0;
-            bool error = false;
-            IEnumerable<Train> trains = GetPrintValidateAllTrainInformation(out id);
-
-            if (trains == null)
-            {
-                Console.WriteLine("There was an error while retrieving your information..");
-                EndFunctionError();
-                return;
-            }
-
-            DisplayUserTrain result = DB.DisplayUserTrainDB(id);
-
-            if (result == null)
-            {
-                Console.WriteLine("There was an error while retrieving your information..");
-                EndFunctionError();
-                return;
-            }
-
-            PrintsDisplayUserTrainResult(result);
+            Console.WriteLine("Trains");
+            Console.WriteLine("--------------------------------------------");
+            GetPrintAllTrainInformation();
+            Console.WriteLine("\n--------------------------------------------");
+            Console.WriteLine("Crew");
+            Console.WriteLine("--------------------------------------------");
+            GetPrintAllCrewInformation();
+            Console.WriteLine();
 
             EndFunction();
             
-
         }
 
-        private IEnumerable<Train> GetPrintValidateAllTrainInformation(out int input)
+        private IEnumerable<Train> GetPrintAllTrainInformation()
         {
-            input = -1;
-            Console.WriteLine("Which Train would you like to view?");
             IEnumerable<Train> trains = DB.GetTrainInfoDB();
             if (trains == null)
             {
                 return null;
             }
-            Console.WriteLine("Train Number\tLead Power\tDCC Address\t\tCurrent Module\t\tLast Updated");
-            Console.WriteLine("----------------------------------------------------------------------------------------------------");
+            Console.WriteLine("Train Number\tLead Power\tDCC Address");
+            Console.WriteLine("--------------------------------------------");
             foreach (var train in trains)
             {
                 Console.Write(train.TrainNumber);
                 Console.Write("\t\t" + train.LeadPower);
-                Console.Write("\t\t" + train.DCCAddress);
-                Console.Write("\t\t\t" + train.onModule);
-                Console.WriteLine("\t" + train.TimeUpdated);
+                Console.WriteLine("\t\t" + train.DCCAddress);
             }
-            Console.Write("\n\nPlease select an Train Number:  ");
-            input = getInputAndReturnNumber();
-            bool goodValue = false;
-            while (!goodValue)
-            {
-                foreach (var train in trains)
-                {
-                    if (input == train.TrainNumber)
-                    {
-                        goodValue = true;
-                        break;
-                    }
-                }
-                if (goodValue)
-                    continue;
-                Console.WriteLine("That value {0} was not in the given set, please try again: ", input);
-                input = getInputAndReturnNumber();
-            }
+            
             return trains;
         }
 
-        
-
-        private void PrintsDisplayUserTrainResult(DisplayUserTrain result)
+        private IEnumerable<Crew> GetPrintAllCrewInformation()
         {
-            Console.WriteLine("Crew\t\tDCC Number");
-            Console.WriteLine("------------------------------------------------");
-            Console.Write(result.Crew);
-            Console.WriteLine("\t\t" + result.DCCAddress);
-            Console.WriteLine("\tCar\t\tProduct\t\tNext Industry");
-            Console.WriteLine("------------------------------------------------");
-            for(int i = 0; i < result.UsingCar.Count(); i++) // This will handle all of the looping
+            IEnumerable<Crew> crews = DB.GetCrewInfoDB();
+            if (crews == null)
             {
-                Console.Write("\t" + result.UsingCar[i]);
-                Console.Write("\t\t" + result.ProductType[i]); // This is a non-nullable value. 
-                Console.WriteLine("\t\t" + result.ToIndustry[i]);
+                return null;
             }
+            Console.WriteLine("Name\tDescription");
+            Console.WriteLine("--------------------------------------------");
+            foreach (var crew in crews)
+            {
+                Console.Write(crew.CrewName);
+                Console.WriteLine("\t\t" + crew.Description ?? "None");
+            }
+
+            return crews;
         }
 
+
+
+        // Helper Functions 
         private void EndFunction()
         {
             Console.WriteLine("Press any key to continue...");
