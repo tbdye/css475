@@ -96,6 +96,55 @@ namespace Database_Presentation
             return ListOfTrains;
         }
 
+        public IEnumerable<Train> GetAllTrainInfoDB()
+        {
+            string cmd = String.Format("SELECT * FROM Trains as t "
+                                        + "INNER JOIN TrainLocations as tl "
+                                        + "ON t.TrainNumber = tl.TrainNumber "
+                                        + "ORDER BY t.TrainNumber");
+            List<Train> ListOfTrains = new List<Train>();
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var value = -1;
+                                var train = new Train();
+
+                                train.TrainNumber = (int)reader["TrainNumber"];
+
+                                Int32.TryParse(reader["LeadPower"].ToString(), out value);
+                                train.LeadPower = value;
+                                Int32.TryParse(reader["DCCAddress"].ToString(), out value);
+                                train.DCCAddress = value;
+
+                                train.OnModule = reader["OnModule"].ToString();
+
+                                train.TimeCreated = DateTime.Parse(reader["TimeCreated"].ToString());
+                                train.TimeModuleUpdated = DateTime.Parse(reader["TimeUpdated"].ToString());
+                                
+                                ListOfTrains.Add(train);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            return ListOfTrains;
+        }
+
         public IEnumerable<Crew> GetCrewInfoDB()
         {
             string cmd = "SELECT * FROM Crews;";

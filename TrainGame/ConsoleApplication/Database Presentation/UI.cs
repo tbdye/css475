@@ -29,8 +29,8 @@ namespace Database_Presentation
                     case 2:
                         SelectCrewAndSelectTrainFromCrew();
                         break;
-                    case 4:
-
+                    case 3:
+                        DisplayAllTrainInformation();
                         break;
                     case 5:
 
@@ -97,7 +97,7 @@ namespace Database_Presentation
 
             Console.WriteLine("Trains");
             Console.WriteLine("--------------------------------------------");
-            GetPrintAllTrainInformation();
+            GetPrintAllTrainInformation(false);
             Console.WriteLine("\n--------------------------------------------");
             Console.WriteLine("Crew");
             Console.WriteLine("--------------------------------------------");
@@ -108,20 +108,42 @@ namespace Database_Presentation
             
         }
 
-        private IEnumerable<Train> GetPrintAllTrainInformation()
+        private IEnumerable<Train> GetPrintAllTrainInformation(bool verbose)
         {
-            IEnumerable<Train> trains = DB.GetTrainInfoDB();
+            IEnumerable<Train> trains = verbose ? DB.GetAllTrainInfoDB() : DB.GetTrainInfoDB();
             if (trains == null)
             {
                 return null;
             }
-            Console.WriteLine("Train Number\tLead Power\tDCC Address");
-            Console.WriteLine("--------------------------------------------");
-            foreach (var train in trains)
+            if (verbose)
             {
-                Console.Write(train.TrainNumber);
-                Console.Write("\t\t" + train.LeadPower);
-                Console.WriteLine("\t\t" + train.DCCAddress);
+                Console.WriteLine("Train Number\tLead Power\tDCC Address\tModule\t\t\tTimeUpdated");
+                Console.WriteLine("-------------------------------------------------------------------------------------------");
+            }
+            else
+            {
+                Console.WriteLine("Train Number\tLead Power\tDCC Address");
+                Console.WriteLine("--------------------------------------------");
+            }
+            if (verbose)
+            {
+                foreach (var train in trains)
+                {
+                    Console.Write("{0}", train.TrainNumber);
+                    Console.Write("\t\t{0}", train.LeadPower);
+                    Console.Write("\t\t{0}", train.DCCAddress);
+                    Console.Write("\t\t{0}", train.OnModule);
+                    Console.WriteLine("\t{0}", train.TimeModuleUpdated);
+                }
+            }
+            else
+            {
+                foreach (var train in trains)
+                {
+                    Console.Write(train.TrainNumber);
+                    Console.Write("\t\t" + train.LeadPower);
+                    Console.WriteLine("\t\t" + train.DCCAddress);
+                }
             }
             
             return trains;
@@ -149,7 +171,7 @@ namespace Database_Presentation
 
             var crewIndex = getInputAndReturnNumber() - 1;
 
-            List<Train> trains = GetPrintAllTrainInformation().ToList();
+            List<Train> trains = GetPrintAllTrainInformation(false).ToList();
             if (trains == null)
             {
                 EndFunctionError();
@@ -166,6 +188,16 @@ namespace Database_Presentation
             EndFunction();
 
             return toReturn;
+        }
+
+        // Option 3
+        private void DisplayAllTrainInformation()
+        {
+            Console.Clear();
+            Console.WriteLine("Displaying All Train Information...");
+            GetPrintAllTrainInformation(true);
+            EndFunction();
+
         }
 
 
