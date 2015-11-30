@@ -80,8 +80,8 @@ CREATE TABLE IF NOT EXISTS ProductTypes (
 #Notes:  None.
 #Pre-conditions:  None.
 #Input Constraint:  N/A
-#Constrains:  ModulesAvailable, Regions, MainLines, Junctions, Industries,
-#	Yards, TrainLocations
+#Constrains:  ModulesAvailable, Regions, MainLines, Junctions, Yards,
+#	Industries, TrainLocations
 #Assumptions:  ModuleType, ModuleShape, and Description are
 #	optional descriptive attributes that are also fully and non-transitively
 #	dependent on ModuleName.
@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS Regions (
 #	indicate a path for a train to follow (version 2.0).
 #Pre-conditions:  A valid Modules entity must exist.
 #Input Constraint:  N/A
-#Constrains:  Junctions, Industries, Yards
+#Constrains:  Junctions, Yards, Industries
 #Assumptions:  IsContiguous is fully and non-transitively dependent on
 #	LineName.
 CREATE TABLE IF NOT EXISTS MainLines (
@@ -220,7 +220,8 @@ CREATE TABLE IF NOT EXISTS Yards (
 #Pre-conditions:  A valid Modules entity and a MainLines entity must exist.
 #Input Constraints:  N/A
 #Constrains:  IndustriesAvailable, IndustryActivities, IndustryProducts,
-#	IndustrySidings, SidingAssignments, Shipments, RollingStockAtIndustries
+#	IndustrySidings, SidingsAvailableLength, SidingAssignments, Shipments,
+#	RollingStockAtIndustries
 #Assumptions:  None.
 CREATE TABLE IF NOT EXISTS Industries (
     IndustryName VARCHAR(255) NOT NULL PRIMARY KEY,
@@ -350,6 +351,7 @@ DELIMITER ;
 #Pre-conditions:  A valid Industries must exist with at least one declared
 #	IndustrySidings entity.
 #Input Constraint:  AvailableLength > 0, AvailableLength <= SidingLength
+#Constrains:  None.
 #Assumptions:  AvailableLength is fully and non-transitively dependent on
 #	ForIndustry and SidingNumber.
 CREATE TABLE IF NOT EXISTS SidingsAvailableLength (
@@ -357,6 +359,9 @@ CREATE TABLE IF NOT EXISTS SidingsAvailableLength (
     SidingNumber INT NOT NULL,
     AvailableLength INT NOT NULL,
     PRIMARY KEY (ForIndustry , SidingNumber),
+	FOREIGN KEY (ForIndustry)
+        REFERENCES Industries (IndustryName)
+        ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (ForIndustry , SidingNumber)
         REFERENCES IndustrySidings (ForIndustry , SidingNumber)
         ON DELETE CASCADE ON UPDATE CASCADE
@@ -388,8 +393,8 @@ DELIMITER ;
 #	default.  Siding assignments will restrict a siding to only authorized
 #	product types.  Siding assignments should not be used unless at least two
 #	industry sidings exist.
-#Pre-conditions:  A valid Industries entity must exist with declared
-#	IndustrySidings entities and ProductTypes entities.
+#Pre-conditions:  A valid Industries entity must exist more than one declared
+#	IndustrySidings entities and at least one ProductTypes entity.
 #Input Constraint:  The count for total industry sidings at an industry must be
 #	at least 2.
 #Constrains:  None.
@@ -533,7 +538,7 @@ CREATE TABLE IF NOT EXISTS RollingStockAtIndustries (
 #Pre-conditions:  A valid ProductTypes entity and two Industries entities must
 #	exist.  For each industry, one IndustrySidings entity must exist.
 #Input Constraint:  FromIndustry <> ToIndustry
-#Constrains:  ShipmentsStatus, Waybills
+#Constrains:  ShipmentsPickedUp, ShipmentsDelivered, Waybills
 #Assumptions:  TimeCreated is fully and non-transitively dependent on ShipmentID.
 CREATE TABLE IF NOT EXISTS Shipments (
     ShipmentID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
