@@ -9,7 +9,6 @@ namespace Database_Presentation.Entities
     public class Crew
     {
         public Crew() { }
-
         public string CrewName { get; set; }
         public string Description { get; set; }
     }

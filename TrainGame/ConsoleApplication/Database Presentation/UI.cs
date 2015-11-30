@@ -27,7 +27,7 @@ namespace Database_Presentation
                         ReportTrainInformationAndCrews();
                         break;
                     case 2:
-
+                        SelectCrewAndSelectTrainFromCrew();
                         break;
                     case 4:
 
@@ -127,24 +127,46 @@ namespace Database_Presentation
             return trains;
         }
 
-        private IEnumerable<Crew> GetPrintAllCrewInformation()
+        // Option 2 
+        /// <summary>
+        /// Presents all the crew to the user as well as all of the trains, 
+        /// and allows the user to choose which one they want.
+        /// Note: Currently the return from this function is being disposed of,
+        /// but with the Tuple implementation, it would not be hard to correctly consume. 
+        /// </summary>
+        /// <returns>A tuple containing the selected crew and selected train</returns>
+        private Tuple<Crew, Train> SelectCrewAndSelectTrainFromCrew()
         {
-            IEnumerable<Crew> crews = DB.GetCrewInfoDB();
-            if (crews == null)
+            Console.Clear();
+            List<Crew> crew = GetPrintAllCrewInformation().ToList();
+            if (crew == null)
             {
+                EndFunctionError();
                 return null;
             }
-            Console.WriteLine("Name\tDescription");
-            Console.WriteLine("--------------------------------------------");
-            foreach (var crew in crews)
+
+            Console.Write("Please select the Crew Number you want to retrieve:  ");
+
+            var crewIndex = getInputAndReturnNumber() - 1;
+
+            List<Train> trains = GetPrintAllTrainInformation().ToList();
+            if (trains == null)
             {
-                Console.Write(crew.CrewName);
-                Console.WriteLine("\t\t" + crew.Description ?? "None");
+                EndFunctionError();
+                return new Tuple<Crew, Train>(crew[crewIndex], null);
             }
 
-            return crews;
-        }
+            Console.Write("Please select the Train Number you want to retrieve:  ");
+            var trainIndex = getInputAndReturnNumber() - 1;
 
+            var toReturn = new Tuple<Crew, Train>(crew[crewIndex], trains[trainIndex]);
+
+            Console.WriteLine("Crew Person: {0} and Train #{1}, retrieved", toReturn.Item1.CrewName, toReturn.Item2.TrainNumber);
+
+            EndFunction();
+
+            return toReturn;
+        }
 
 
         // Helper Functions 
@@ -159,6 +181,25 @@ namespace Database_Presentation
             Console.WriteLine("There was an error retrieving the results");
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
+        }
+
+        private IEnumerable<Crew> GetPrintAllCrewInformation()
+        {
+            IEnumerable<Crew> crews = DB.GetCrewInfoDB();
+            if (crews == null)
+            {
+                return null;
+            }
+            Console.WriteLine("Name\tDescription");
+            Console.WriteLine("--------------------------------------------");
+            var count = 0;
+            foreach (var crew in crews)
+            {
+                Console.Write("{0}) {1}", ++count, crew.CrewName);
+                Console.WriteLine("\t\t" + crew.Description);
+            }
+
+            return crews;
         }
 
     }
