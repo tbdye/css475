@@ -688,11 +688,11 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-#This file contains test data that creates a small model railroad layout, train
-#cars, and players.  Data insertion is handled in a sequence order that is
-#either required by the database or encountered through normal program
-#interaction.  This data, as it is, will only be used for development testing.
-#Normal game operation allows for the application or interface to supply data.
+#This test data creates a small model railroad layout, train cars, and players.
+#	Data insertion is handled in a sequence order that is either required by
+#	the database or encountered through normal program interaction.  This data,
+#	as it is, will only be used for development testing.  Normal game operation
+#	allows for the application or interface to supply data.
 
 #Section A:  Initalize Game Parameters
 #
@@ -702,7 +702,7 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
 
 #Define rolling stock car types
 #Notes:  For each category of rolling stock in use, declare a car type and car
-#length.
+#	length.
 INSERT INTO RollingStockTypes VALUES ('Box Car', 65);
 INSERT INTO RollingStockTypes VALUES ('Centerbeam Flat', 85);
 INSERT INTO RollingStockTypes VALUES ('Flat Car', 65);
@@ -718,7 +718,8 @@ INSERT INTO RollingStockTypes VALUES ('Wood Chip Car', 75);
 
 #Define product type assignments
 #Notes:  For each category of rolling stock car type, multiple product types
-#can be carried.  Declare all product types and rolling stock car associations.
+#	can be carried.  Declare all product types and rolling stock car
+#	associations.
 INSERT INTO ProductTypes VALUES ('Crates', 'Box Car');
 INSERT INTO ProductTypes VALUES ('Metal', 'Box Car');
 INSERT INTO ProductTypes VALUES ('Paper', 'Box Car');
@@ -749,23 +750,21 @@ INSERT INTO ProductTypes VALUES ('Garbage', 'Wood Chip Car');
 INSERT INTO ProductTypes VALUES ('Wood Chips', 'Wood Chip Car');
 
 #Section B:  Build Layout
-#Notes:  For each module, entities must be built in the following order:
-#Module, MainLines, Junctions (optional), Industries (optional),
-#IndustryProducts (requires Industries), IndustrySidings (requires Industries),
-#SidingAssignments (optional, requires Industries).
-#Modules with industries are not accessible unless all non-optional
-#requirements are declared.  Data declared in this section is likely to remain
-#persistent and will be used across multiple game sessions.
+#Notes:  Data declared in this section is likely to remain persistent and will
+#	be used across multiple game sessions.
 #
-#Expected Insertion Order:
-#Declare Modules.
-#Declare Modules MainLines
-#Declare Modules MainLines Junctions
-#Declare Modules Yards
-#Declare Industries on Modules MainLines
+#Expected Insertion Order (for each Module):
+#Declare Modules
+#Declare MainLines for Modules
+#Declare Junctions on MainLines
+#Declare Yards on MainLines
+#Declare Industries on MainLines
+#Declare IndustriesAvailable for Industries
+#Declare IndustryActivities for Industries
 #Declare IndustryProducts for Industries
 #Declare IndustrySidings for Industries
-#Declare SidingAssignments for Industries IndustrySidings
+#Declare SidingsAvailableLength for IndustrySidings
+#Declare SidingAssignments for IndustrySidings
 
 #Populate the Black River Yard module.
 INSERT INTO Modules VALUES ('Black River Yard', 'Mike Donnelly', 'oNeTrak', '3-Straight', 'Contains the Black River Yard');
@@ -1026,15 +1025,15 @@ INSERT INTO SidingsAvailableLength VALUES ('LGP Professionals', 4, 120);
 
 #Section C:  Initialize Game Session
 #Notes:  This section contains non-persistent data which typically only exists
-#for a single game session.  An game session is considered active when trains,
-#rolling stock cars, and crews are in existence.  To start a game, select
-#modules that are to be used and declare which region they are to be in.  A
-#locomotive is selected to declare a new train to be used.  Rolling stock for
-#trains must be assigned to a location.  Shipment orders are created on demand
-#based off of current layout and industry parameters.  For each rolling stock
-#car, waybills must be associated with a shipping order before that car is
-#consisted to a train.  For each train, crews are declared and then assigned to
-#a train.  The train and player are then considered to be ready for game play.
+#	for a single game session.  A game session is considered active when
+#	trains, rolling stock cars, and crews are in existence.  To start a game,
+#	select which modules are present from the library of previously defined
+#	modules and declare which region they are to be in to determine layout
+#	shape.
+#
+#Expected Insertion Order:
+#Declare all ModulesAvailable for Modules.
+#Declare all Regions for Modules.
 
 #Activate available modules for gameplay.
 INSERT INTO ModulesAvailable VALUES ('Black River Yard', TRUE);
@@ -1061,15 +1060,24 @@ INSERT INTO Regions VALUES ('North', 'Chesterfield');
 INSERT INTO Regions VALUES ('North', 'Pure Oil');
 
 #Section D:  Game Session
+#Notes:  A locomotive is selected to declare a new train will exist,
+#	originating on a particular module.  Available rolling stock for trains are
+#	identified and must be assigned to an originating yard or industry.
+#	Shipment orders are created on demand based off of current layout and
+#	industry parameters.  For each rolling stock car, waybills must be
+#	associated with a shipping order before that car is consisted to a train.
+#	For each train, crews are declared and then assigned to a train.  The train
+#	and player are then considered to be ready for game play.
 #
 #Expected Insertion Order:
 #Declare Trains
+#Declare TrainLocations for Trains
 #Declare RollingStockCars
 #Declare Shipments
 #Declare Waybills for Shipments on RollingStockCars
 #Declare ConsistedCars for Trains using RollingStockCars
 #Declare Crews
-#Declare TrainCrews associating Crews to Trains
+#Declare TrainCrews for Crews on Trains
 
 #Train 1
 INSERT INTO Trains VALUES (1, 455, 0455, DEFAULT);
