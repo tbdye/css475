@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBHandler.cs" />
+    <Compile Include="Entities\AllRollingStock.cs" />
     <Compile Include="Entities\Crew.cs" />
     <Compile Include="Entities\DisplayUserTrain.cs" />
     <Compile Include="Entities\Industry.cs" />

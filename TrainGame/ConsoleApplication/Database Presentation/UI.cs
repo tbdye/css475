@@ -32,8 +32,8 @@ namespace Database_Presentation
                     case 3:
                         DisplayAllTrainInformation();
                         break;
-                    case 5:
-
+                    case 4:
+                        DisplayRollingStockFromASelectedTrain();
                         break;
                     default:
                         Console.WriteLine("Sorry '{0}' was not a good input", numInput);
@@ -49,21 +49,6 @@ namespace Database_Presentation
                     return;
                 }
             }
-        }
-
-        private int getInputAndReturnNumber()
-        {
-            int toReturn = 0;
-            while(!Int32.TryParse(Console.ReadLine(), out toReturn))
-            {
-                Console.WriteLine("This input {0} is not a valid input, \nPlease try again", toReturn);
-            }
-            return toReturn;
-        }
-
-        private string getInput()
-        {
-            return Console.ReadLine();
         }
 
         private void PrintOptions()
@@ -197,9 +182,55 @@ namespace Database_Presentation
             Console.WriteLine("Displaying All Train Information...");
             GetPrintAllTrainInformation(true);
             EndFunction();
-
         }
 
+        private void DisplayRollingStockForSpecifiedTrain(int trainNumber)
+        {
+            Console.WriteLine("Displaying Rolling stock information for Train Number {0}", trainNumber);
+            List<AllRollingStock> values = DB.GetAllRollingStockForTrainDB(trainNumber).ToList();
+            Console.WriteLine("Car ID\t\tYard Name\t\tCar Type\t\tDescription\t\tCar Length");
+            Console.WriteLine("------------------------------------------------------------------------------------------");
+            foreach (var value in values)
+            {
+                Console.Write("{0}", value.CarID);
+                Console.Write("\t\t{0}", value.YardName);
+                Console.Write("\t{0}", value.CarType);
+                Console.Write("\t\t{0}", value.Description.Equals("") ? "NONE" : value.Description);
+                Console.WriteLine("\t\t{0}", value.CarLength);
+            }
+        }
+
+        private void DisplayRollingStockFromASelectedTrain()
+        {
+            Console.Clear();
+            Console.WriteLine("Displaing All train information...");
+            List<Train> trains = GetPrintAllTrainInformation(false).ToList();
+            Console.Write("Please select the train that you want to show rolling stock for: ");
+            var trainNumber = getInputAndReturnNumber();
+            var trainIndex = 0;
+            var goodInput = false;
+            while (!goodInput)
+            {
+                for(int i = 0; i < trains.Count(); i++)
+                {
+                    if (trainNumber == trains[i].TrainNumber)
+                    {
+                        trainIndex = i;
+                        goodInput = true;
+                        break;
+                    }
+                }
+                if (!goodInput)
+                {
+                    Console.WriteLine("Your input: {0} was not in the given list, please try again...");
+                    trainNumber = getInputAndReturnNumber();
+                }
+            }
+
+            DisplayRollingStockForSpecifiedTrain(trainNumber);
+            EndFunction();
+
+        }
 
         // Helper Functions 
         private void EndFunction()
@@ -207,14 +238,12 @@ namespace Database_Presentation
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
-
         private void EndFunctionError()
         {
             Console.WriteLine("There was an error retrieving the results");
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
-
         private IEnumerable<Crew> GetPrintAllCrewInformation()
         {
             IEnumerable<Crew> crews = DB.GetCrewInfoDB();
@@ -233,6 +262,18 @@ namespace Database_Presentation
 
             return crews;
         }
-
+        private int getInputAndReturnNumber()
+        {
+            int toReturn = 0;
+            while (!Int32.TryParse(Console.ReadLine(), out toReturn))
+            {
+                Console.WriteLine("This input {0} is not a valid input, \nPlease try again", toReturn);
+            }
+            return toReturn;
+        }
+        private string getInput()
+        {
+            return Console.ReadLine();
+        }
     }
 }

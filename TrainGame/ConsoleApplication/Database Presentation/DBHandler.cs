@@ -96,6 +96,59 @@ namespace Database_Presentation
             return ListOfTrains;
         }
 
+        public IEnumerable<AllRollingStock> GetAllRollingStockForTrainDB(int trainNumber)
+        {
+            string cmd = String.Format("Select * from ConsistedCars as cc "
+                                        + "inner join RollingStockAtYards as rsy "
+                                        + "on cc.UsingCar = rsy.CarID "
+                                        + "inner join RollingStockAtIndustries as rsi "
+                                        + "on cc.UsingCar = rsi.CarID "
+                                        + "inner join RollingStockCars as rsc "
+                                        + "on cc.UsingCar = rsc.CarID "
+                                        + "inner join RollingStockTypes as rst "
+                                        + "on rsc.CarType = rst.CarTypeName "
+                                        + "Where OnTrain = {0}; ", trainNumber);
+
+            List<AllRollingStock> values = new List<AllRollingStock>();
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                var value = -1;
+                                var tmp = new AllRollingStock();
+
+                                Int32.TryParse(reader["OnTrain"].ToString(), out value);
+                                tmp.TrainNumber = value;
+
+                                tmp.CarID = reader["UsingCar"].ToString();
+                                tmp.YardName = reader["AtYard"].ToString();
+                                tmp.CarType = reader["CarType"].ToString();
+                                tmp.Description = reader["Description"].ToString();
+
+                                Int32.TryParse(reader["CarLength"].ToString(), out value);
+                                tmp.CarLength = value;
+                                values.Add(tmp);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            return values;
+        }
         public IEnumerable<Train> GetAllTrainInfoDB()
         {
             string cmd = String.Format("SELECT * FROM Trains as t "
