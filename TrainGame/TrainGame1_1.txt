@@ -694,6 +694,29 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
+#StoredProcedures
+
+/*#GetNextDestination
+DELIMITER $$
+CREATE PROCEDURE GetNextDestination (
+	IN ShippingOrder INT,
+    OUT Destination VARCHAR(255))
+BEGIN
+	CASE
+		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			AND ShippingOrder IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = ShippingOrder)
+            THEN
+				SET Destination = (SELECT ReturnToYard FROM Waybills WHERE UsingShipmentID = ShippingOrder);
+		WHEN ShippingOrder NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			THEN
+				SET Destination = (SELECT FromIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
+		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			THEN
+				SET Destination = (SELECT ToIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
+    END CASE;
+END$$
+DELIMITER ;*/
+
 #This test data creates a small model railroad layout, train cars, and players.
 #	Data insertion is handled in a sequence order that is either required by
 #	the database or encountered through normal program interaction.  This data,
