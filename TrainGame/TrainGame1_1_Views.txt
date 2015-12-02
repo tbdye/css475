@@ -105,9 +105,80 @@ SELECT
     r.CarID,
     r.CarType,
     s.ProductType,
-    s.FromIndustry,
-    s.ToIndustry,
-    w.ReturnToYard
+    (CASE
+        WHEN
+            s.ShipmentID IN (SELECT 
+                    ShipmentID
+                FROM
+                    ShipmentsPickedUp
+                WHERE
+                    ShipmentID = s.ShipmentID)
+                AND s.ShipmentID IN (SELECT 
+                    ShipmentID
+                FROM
+                    ShipmentsDelivered
+                WHERE
+                    ShipmentID = s.ShipmentID)
+        THEN
+            (SELECT 
+                    @nextDestination:=(SELECT 
+                                ReturnToYard
+                            FROM
+                                Waybills
+                            WHERE
+                                UsingShipmentID = s.ShipmentID)
+                )
+        WHEN
+            s.ShipmentID NOT IN (SELECT 
+                    ShipmentID
+                FROM
+                    ShipmentsPickedUp
+                WHERE
+                    ShipmentID = s.ShipmentID)
+        THEN
+            (SELECT 
+                    @nextDestination:=(SELECT 
+                                FromIndustry
+                            FROM
+                                Shipments
+                            WHERE
+                                ShipmentID = s.ShipmentID)
+                )
+        WHEN
+            s.ShipmentID IN (SELECT 
+                    ShipmentID
+                FROM
+                    ShipmentsPickedUp
+                WHERE
+                    ShipmentID = s.ShipmentID)
+        THEN
+            (SELECT 
+                    @nextDestination:=(SELECT 
+                                ToIndustry
+                            FROM
+                                Shipments
+                            WHERE
+                                ShipmentID = s.ShipmentID)
+                )
+    END) AS NextDestination,
+    IF(@nextDestination IN (SELECT 
+                IndustryName
+            FROM
+                Industries
+            WHERE
+                IndustryName = @nextDestination),
+        (SELECT 
+                OnModule
+            FROM
+                Industries
+            WHERE
+                IndustryName = @nextDestination),
+        (SELECT 
+                OnModule
+            FROM
+                Yards
+            WHERE
+                YardName = @nextDestination)) AS Module
 FROM
     RollingStockCars r,
     Waybills w,
@@ -115,9 +186,10 @@ FROM
 WHERE
     r.CarID = w.OnCar
         AND w.UsingShipmentID = s.ShipmentID
-        AND CarID IN (SELECT 
+        AND OnCar IN (SELECT 
             UsingCar
         FROM
             ConsistedCars
         WHERE
             OnTrain = @playerTrain);
+
