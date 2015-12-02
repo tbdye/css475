@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Database_Presentation.Entities
 {
-    public class MainLine
+    public class Player
     {
-        public MainLine() { }
+        public Player() { }
+        public Train Train { get; set; }
         public string Name { get; set; }
-        public string Module { get; set; }
-        public bool IsContiguous { get; set; } 
+
     }
 }

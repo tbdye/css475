@@ -8,26 +8,29 @@ using MySql.Data.MySqlClient;
 
 namespace Database_Presentation.Entities
 {
-    public class Crew : DBEntity
+    public class Yard : DBEntity
     {
-        public Crew() { }
+        public Yard() { }
 
-        public Crew(MySqlDataReader reader)
+        public Yard(MySqlDataReader reader)
         {
             this.SetUp(reader);
         }
 
         public override void SetUp(MySqlDataReader reader)
         {
-            this.CrewName = reader["CrewName"].ToString();
-            this.Description = reader["Description"].ToString();
+            this.Name = reader["YardName"].ToString();
+            this.Module = reader["OnModule"].ToString();
+            this.MainLine = reader["OnMainLine"].ToString();
         }
 
         public override DBEntity GetNew(MySqlDataReader reader)
         {
-            return new Crew(reader);
+            return new Yard(reader);
         }
-        public string CrewName { get; set; }
-        public string Description { get; set; }
+
+        public string Name { get; set; }
+        public string Module { get; set; }
+        public string MainLine { get; set; }
     }
 }
