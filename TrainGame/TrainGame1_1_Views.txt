@@ -1,1 +1,123 @@
 #Game play and database interactions to go here.
+
+SET @playerModule = 'Black River Yard';
+SET @playerIndustry = 'MMI Transfer Site 3';
+SET @playerTrain = 3;
+
+#Display List of Modules:
+SELECT 
+    *
+FROM
+    Modules
+WHERE
+    ModuleName IN (SELECT 
+            ModuleName
+        FROM
+            ModulesAvailable
+        WHERE
+            IsAvailable = TRUE);
+			
+#Display Module:
+SELECT 
+    *
+FROM
+    Industries
+WHERE
+    IndustryName IN (SELECT 
+            IndustryName
+        FROM
+            IndustriesAvailable
+        WHERE
+            IsAvailable = TRUE)
+        AND OnModule = @playerModule;
+
+#Display Industry:
+SELECT 
+    s.*, p.UsingProductType
+FROM
+    IndustrySidings s
+        JOIN
+    IndustryProducts p ON s.ForIndustry = p.ForIndustry
+WHERE
+    p.UsingProductType NOT IN (SELECT 
+            ForProductType
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.SidingNumber NOT IN (SELECT 
+            SidingNumber
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.ForIndustry = @playerIndustry 
+UNION SELECT 
+    s.*, p.UsingProductType
+FROM
+    IndustrySidings s
+        JOIN
+    IndustryProducts p ON s.ForIndustry = p.ForIndustry
+WHERE
+    p.UsingProductType IN (SELECT 
+            ForProductType
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.SidingNumber IN (SELECT 
+            SidingNumber
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.ForIndustry = @playerIndustry;
+
+#Display Rolling Stock At Industry:	
+SELECT 
+    c.CarID, c.CarType, i.AtIndustry, i.TimeArrived
+FROM
+    RollingStockCars c
+        JOIN
+    RollingStockAtIndustries i ON c.CarID = i.CarID
+WHERE
+    i.AtIndustry = @playerIndustry;
+
+#Display User Train:
+SELECT 
+    t.TrainNumber,
+    t.LeadPower,
+    t.DCCAddress,
+    c.WithCrew,
+    l.onModule,
+    l.TimeUpdated
+FROM
+    Trains t,
+    TrainCrews c,
+    TrainLocations l
+WHERE
+    t.TrainNumber = c.OnTrain
+        AND t.TrainNumber = l.TrainNumber
+        AND t.TrainNumber = @playerTrain;
+
+#Display Train Consist:		
+SELECT 
+    r.CarID,
+    r.CarType,
+    s.ProductType,
+    s.FromIndustry,
+    s.ToIndustry,
+    w.ReturnToYard
+FROM
+    RollingStockCars r,
+    Waybills w,
+    Shipments s
+WHERE
+    r.CarID = w.OnCar
+        AND w.UsingShipmentID = s.ShipmentID
+        AND CarID IN (SELECT 
+            UsingCar
+        FROM
+            ConsistedCars
+        WHERE
+            OnTrain = @playerTrain);
