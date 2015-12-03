@@ -1,20 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.Entity;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
+using System;
 
 namespace Database_Presentation.Entities
 {
-
     public class Train : DBEntity
     {
-        public Train() { }
+        public Train()
+        {
+        }
 
-        public Train(MySqlDataReader reader) { this.SetUp(reader); }
-        public override void SetUp(MySqlDataReader reader) 
+        public Train(MySqlDataReader reader)
+        {
+            this.SetUp(reader);
+        }
+
+        public override void SetUp(MySqlDataReader reader)
         {
             var value = 0;
 
@@ -28,16 +28,17 @@ namespace Database_Presentation.Entities
             this.TimeCreated = DateTime.Parse(reader["TimeCreated"].ToString());
             this.Module = reader["OnModule"].ToString();
         }
+
         public override DBEntity GetNew(MySqlDataReader reader)
         {
             return new Train(reader);
         }
+
         public int TrainNumber { get; set; }
         public int LeadPower { get; set; }
         public int DCCAddress { get; set; }
         public string Module { get; set; }
         public DateTime TimeCreated { get; set; }
         public DateTime TimeModuleUpdated { get; set; }
-
     }
 }

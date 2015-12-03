@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.Entity;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 
 namespace Database_Presentation.Entities
 {
     public class Crew : DBEntity
     {
-        public Crew() { }
+        public Crew()
+        {
+        }
 
         public Crew(MySqlDataReader reader)
         {
@@ -27,6 +23,7 @@ namespace Database_Presentation.Entities
         {
             return new Crew(reader);
         }
+
         public string CrewName { get; set; }
         public string Description { get; set; }
     }

@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.Entity;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
+using System;
 
 namespace Database_Presentation.Entities
 {
     public class RollingStock : DBEntity
     {
-        public RollingStock() { }
+        public RollingStock()
+        {
+        }
+
         public RollingStock(MySqlDataReader reader)
         {
             this.SetUp(reader);

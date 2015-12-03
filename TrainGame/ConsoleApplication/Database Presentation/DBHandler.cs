@@ -28,7 +28,6 @@ namespace Database_Presentation
 
         public DBHandler()
         {
-
         }
 
         // Will need (needs to be updated to v 1.1)
@@ -71,7 +70,7 @@ namespace Database_Presentation
         public IEnumerable<Industry> GetAllIndustriesOnModuleDB(string ModuleName)
         {
             string cmd = String.Format("SELECT * FROM Industries as i "
-                                        +"INNER JOIN IndustriesAvailable AS ia "
+                                        + "INNER JOIN IndustriesAvailable AS ia "
                                         + "ON ia.IndustryName = i.IndustryName "
                                         + "inner join IndustryActivities as iaa "
                                         + "on iaa.IndustryName = i.IndustryName "
@@ -258,6 +257,6 @@ namespace Database_Presentation
             return toReturn;
         }
 
-        #endregion
+        #endregion Helper Methods
     }
 }

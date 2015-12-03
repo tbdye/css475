@@ -1,22 +1,19 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.Entity;
-using MySql.Data.MySqlClient;
 
 namespace Database_Presentation.Entities
 {
     public class Industry : DBEntity
     {
-        public Industry() 
+        public Industry()
         {
             this.UsingProductTypes = new List<Product>();
             this.Sidings = new List<Siding>();
         }
 
-        public Industry(MySqlDataReader reader) : this()
+        public Industry(MySqlDataReader reader)
+            : this()
         {
             this.SetUp(reader);
         }

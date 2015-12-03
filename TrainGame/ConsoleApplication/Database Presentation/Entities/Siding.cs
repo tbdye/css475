@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.Entity;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
+using System;
 
 namespace Database_Presentation.Entities
 {
     public class Siding : DBEntity
     {
-        public Siding() { }
-        public Siding(MySqlDataReader reader) 
+        public Siding()
+        {
+        }
+
+        public Siding(MySqlDataReader reader)
         {
             this.SetUp(reader);
         }
@@ -38,6 +36,5 @@ namespace Database_Presentation.Entities
         public int SidingNumber { get; set; }
         public int SidingLength { get; set; }
         public int AvaliableSidingLength { get; set; }
-
     }
 }
