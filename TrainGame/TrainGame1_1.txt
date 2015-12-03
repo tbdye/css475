@@ -1,3 +1,5 @@
+#Clean up old data if any exists
+
 SET FOREIGN_KEY_CHECKS = 0;
 #Framework Associations
 DROP TABLE IF EXISTS RollingStockTypes;
@@ -697,6 +699,7 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
 #StoredProcedures
 
 /*#GetNextDestination
+DROP PROCEDURE IF EXISTS GetNextDestination;
 DELIMITER $$
 CREATE PROCEDURE GetNextDestination (
 	IN ShippingOrder INT,
@@ -718,6 +721,7 @@ END$$
 DELIMITER ;*/
 
 #LoadRollingStock
+DROP PROCEDURE IF EXISTS LoadRollingStock;
 DELIMITER $$
 CREATE PROCEDURE LoadRollingStock (
     IN Industry VARCHAR(255),
@@ -744,6 +748,7 @@ END $$
 DELIMITER ;
 
 #UnloadRollingStock
+DROP PROCEDURE IF EXISTS UnloadRollingStock;
 DELIMITER $$
 CREATE PROCEDURE UnloadRollingStock (
     IN Industry VARCHAR(255),
@@ -754,7 +759,7 @@ BEGIN
     IF (
 			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = @shippingID)
         AND
-			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = @industry AND IsProducer = FALSE)
+			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = FALSE)
 		) THEN
 	DELETE FROM ConsistedCars WHERE UsingCar = CarID;
 	INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
@@ -1166,24 +1171,28 @@ INSERT INTO RollingStockAtYards VALUES ('AA', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 3, 'Tuggle Manufacturing', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AA', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (1, 'AA', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AA';
 
 INSERT INTO RollingStockCars VALUES ('AB', 'Centerbeam Flat', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AB', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Lumber', 'E.E. Aldrin Sawmill', 1, 'Half Circle Farms', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AB', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (1, 'AB', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AB';
 
 INSERT INTO RollingStockCars VALUES ('AC', 'Flat Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AC', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Bulk Equipment', 'Kesselring Machine Shop', 1, 'Half Circle Farms', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AC', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (1, 'AC', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AC';
 
 INSERT INTO RollingStockCars VALUES ('AD', 'Box Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AD', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 3, 'Kesselring Machine Shop', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AD', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (1, 'AD', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AD';
 
 INSERT INTO Crews VALUES ('Brett', NULL);
 #INSERT INTO TrainCrews VALUES (1, 'Brett', DEFAULT);
@@ -1197,24 +1206,28 @@ INSERT INTO RollingStockAtYards VALUES ('AE', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Feed', 'Oatus Elevator', 1, 'Half Circle Farms', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AE', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (2, 'AE', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AE';
 
 INSERT INTO RollingStockCars VALUES ('AF', 'Open Hopper', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AF', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Coal', 'Lostry Mine', 1, 'Palin Interchange', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AF', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (2, 'AF', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AF';
 
 INSERT INTO RollingStockCars VALUES ('AG', 'Box Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AG', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 4, 'Cobra Golf', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AG', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (2, 'AG', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AG';
 
 INSERT INTO RollingStockCars VALUES ('AH', 'Reefer', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AH', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Dairy', 'Half Circle Farms', 1, 'Sunset Feed', 4, DEFAULT);
 INSERT INTO Waybills VALUES ('AH', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (2, 'AH', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AH';
 
 INSERT INTO Crews VALUES ('Thomas', NULL);
 #INSERT INTO TrainCrews VALUES (2, 'Thomas', DEFAULT);
@@ -1228,24 +1241,28 @@ INSERT INTO RollingStockAtYards VALUES ('AI', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Crates', 'Bauxen Crates', 4, 'Max Distributing', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AI', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (3, 'AI', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AI';
 
 INSERT INTO RollingStockCars VALUES ('AJ', 'Stock Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AJ', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Livestock', 'Half Circle Farms', 1, 'Palin Interchange', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AJ', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (3, 'AJ', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AJ';
 
 INSERT INTO RollingStockCars VALUES ('AK', 'Tank Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AK', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'Fuels', 'Pure Oil', 3, 'Half Circle Farms', 1, DEFAULT);
 INSERT INTO Waybills VALUES ('AK', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (3, 'AK', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AK';
 
 INSERT INTO RollingStockCars VALUES ('AL', 'Box Car', NULL);
 INSERT INTO RollingStockAtYards VALUES ('AL', 'Black River Yard', DEFAULT);
 INSERT INTO Shipments VALUES (DEFAULT, 'General Merchandise', 'Puget Warehouse', 1, 'MMI Transfer Site 3', 3, DEFAULT);
 INSERT INTO Waybills VALUES ('AL', LAST_INSERT_ID(), 'Black River Yard');
 INSERT INTO ConsistedCars VALUES (3, 'AL', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'AL';
 
 INSERT INTO Crews VALUES ('Zakk', NULL);
 #INSERT INTO TrainCrews VALUES (3, 'Zakk', DEFAULT);
