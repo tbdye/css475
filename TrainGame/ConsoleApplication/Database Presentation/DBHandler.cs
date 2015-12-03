@@ -98,6 +98,15 @@ namespace Database_Presentation
             return ConvertToList<Industry>(ExecuteReaderList(cmd, new Industry()));
         }
 
+        public bool DropOffCarAtLocationDB(string carId, string industryName)
+        {
+            string cmd = String.Format("UPDATE RollingStockAtIndustries \n "
+                                        + "SET AtIndustry = '{0}' \n"
+                                        + "WHERE CarID = '{1}'"
+                                        , industryName, carId);
+            return ExecuteNonQuery(cmd);
+        }
+
         #region Helper Methods
 
         public Train GetTrain(int trainNumber)
@@ -227,7 +236,7 @@ namespace Database_Presentation
             return toReturn;
         }
 
-        private void ExecuteNonQuery(string cmd)
+        private bool ExecuteNonQuery(string cmd)
         {
             try
             {
@@ -244,7 +253,9 @@ namespace Database_Presentation
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {
                 Console.WriteLine(ex.Message);
+                return false;
             }
+            return true;
         }
 
         private IEnumerable<T> ConvertToList<T>(IEnumerable<DBEntity> values) where T : DBEntity

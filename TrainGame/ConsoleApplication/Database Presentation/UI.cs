@@ -245,10 +245,26 @@ namespace Database_Presentation
 
         private void DropOffRollingStockAtSpecifiedIndustryOnCurrentModule()
         {
+            Console.Clear();
             Console.WriteLine("Displaying all of the Rolling Stock attached to your train...\n");
             List<RollingStock> rollingStockValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
+            Console.Write("\nPlease select the number next to the rolling stock you want to drop off:  ");
             var rollingStockIndex = getInputAndReturnNumber(rollingStockValues.Count());
-
+            Console.WriteLine("Displaying all of the industries attached to your current module...\n");
+            List<Industry> industryValues = GetPrintAllIndustriesOnModule(curPlayer.Train.Module).ToList();
+            Console.Write("\nPlease select the number next to the industry you want to drop off at:  ");
+            var industryIndex = getInputAndReturnNumber(industryValues.Count());
+            var success = DB.DropOffCarAtLocationDB(rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+            if (success)
+            {
+                Console.WriteLine("The car {0} was successfully dropped off at the industry {1}", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+            }
+            else
+            {
+                Console.WriteLine("There was an issue dropping the car {0} at the industry {1}", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+                EndFunctionError();
+                return;
+            }
             EndFunction();
         }
 
@@ -294,13 +310,7 @@ namespace Database_Presentation
             IEnumerable<Industry> industryValues = DB.GetAllIndustriesDB();
             if (industryValues == null)
                 return null;
-            var count = 0;
-            Console.WriteLine("\tIndustry Name");
-            Console.WriteLine("-----------------------");
-            foreach (var value in industryValues)
-            {
-                Console.WriteLine("{0})\t{1}", ++count, value.IndustryName);
-            }
+            PrintIndustries(industryValues, false);
             return industryValues;
         }
 
@@ -333,12 +343,12 @@ namespace Database_Presentation
                 return null;
             }
             var count = 0;
-            Console.WriteLine("Car ID\t\tYard Name\t\tCar Type\t\tDescription\t\tCar Length");
-            Console.WriteLine("------------------------------------------------------------------------------------------");
+            Console.WriteLine("\tCar ID\t\tYard Name\t\tCar Type\t\tDescription\t\tCar Length");
+            Console.WriteLine("----------------------------------------------------------------------------------------------------------");
             foreach (var value in values)
             {
-                Console.Write("{0}", value.CarID);
-                Console.Write("\t\t{0,-15}", value.YardName);
+                Console.Write("{0})\t{1, -15}", ++count, value.CarID);
+                Console.Write("\t{0,-15}", value.YardName);
                 Console.Write("\t{0,-15}", value.CarType);
                 Console.Write("\t\t{0,-15}", value.Description.Equals("") ? "NONE" : value.Description);
                 Console.WriteLine("\t\t{0,-15}", value.CarLength);
@@ -365,6 +375,15 @@ namespace Database_Presentation
                 }
             }
             return toReturn - 1;
+        }
+
+        private IEnumerable<Industry> GetPrintAllIndustriesOnModule(string moduleName)
+        {
+            IEnumerable<Industry> industryValues = DB.GetAllIndustriesOnModuleDB(moduleName);
+            if (industryValues == null)
+                return null;
+            PrintIndustries(industryValues, false);
+            return industryValues;
         }
 
         /// <summary>
@@ -438,44 +457,64 @@ namespace Database_Presentation
         {
             Console.WriteLine("Retrieving all Industry Information for Train #{0}...", curPlayer.Train.TrainNumber);
             List<Industry> industries = DB.GetAllIndustriesOnModuleDB(curPlayer.Train.Module).ToList();
-            var count = 0;
-            foreach (var value in industries)
+            if (industries == null)
             {
-                Console.WriteLine("\tName\t\t\tModule\t\t\tMain Line\tAvalible\tActivity Level");
-                Console.WriteLine("\t----------------------------------------------------------------------------------------------");
-                Console.Write("{0})\t{1}", ++count, value.IndustryName);
-                Console.Write("\t{0,-15}", value.OnModule);
-                Console.Write("\t{0,-15}", value.OnMainLine);
-                Console.Write("\t\t{0,-15}", value.isAvaliable);
-                Console.WriteLine("\t\t{0,-15}", value.ActivityLevel);
-                if (value.Sidings.Count() != 0)
-                {
-                    Console.WriteLine("\n\t\tSiding\n");
-                    Console.WriteLine("\t\t{0, -15}\t\t{1, -15}\t\t{2, -15}", "Number", "Siding Length", "Avaliable Length");
-                    Console.WriteLine("\t\t--------------------------------------------------------");
-                    foreach (var i in value.Sidings)
-                    {
-                        Console.Write("\t\t{0, -15}", i.SidingNumber);
-                        Console.Write("\t\t{0, -15}", i.SidingLength);
-                        Console.WriteLine("\t\t{0, -15}", i.AvaliableSidingLength);
-                    }
-                }
-                if (value.UsingProductTypes.Count() != 0)
-                {
-                    Console.WriteLine("\n\t\tProducts\n");
-                    Console.WriteLine("\t\t{0, -23}{1, -23}{2, -23}", "Name", "Rolling Stock Type", "Producer");
-                    Console.WriteLine("\t\t--------------------------------------------------------");
-                    foreach (var i in value.UsingProductTypes)
-                    {
-                        Console.Write("\t\t{0, -23}", i.ProductTypeName);
-                        Console.Write("{0, -23}", i.RollingStockType);
-                        Console.WriteLine("{0, -23}", i.isProducer);
-                    }
-                }
-                Console.WriteLine("--------------------------------------------------------------------------------------------------------------------------------------\n");
+                return null;
             }
-
+            PrintIndustries(industries, true);
             return industries;
+        }
+
+        private void PrintIndustries(IEnumerable<Industry> industries, bool verbose)
+        {
+            var count = 0;
+            if (verbose)
+            {
+                foreach (var value in industries)
+                {
+                    Console.WriteLine("\tName\t\t\tModule\t\t\tMain Line\tAvalible\tActivity Level");
+                    Console.WriteLine("\t----------------------------------------------------------------------------------------------");
+                    Console.Write("{0})\t{1}", ++count, value.IndustryName);
+                    Console.Write("\t{0,-15}", value.OnModule);
+                    Console.Write("\t{0,-15}", value.OnMainLine);
+                    Console.Write("\t\t{0,-15}", value.isAvaliable);
+                    Console.WriteLine("\t\t{0,-15}", value.ActivityLevel);
+                    if (value.Sidings.Count() != 0)
+                    {
+                        Console.WriteLine("\n\t\tSiding\n");
+                        Console.WriteLine("\t\t{0, -15}\t\t{1, -15}\t\t{2, -15}", "Number", "Siding Length", "Avaliable Length");
+                        Console.WriteLine("\t\t--------------------------------------------------------");
+                        foreach (var i in value.Sidings)
+                        {
+                            Console.Write("\t\t{0, -15}", i.SidingNumber);
+                            Console.Write("\t\t{0, -15}", i.SidingLength);
+                            Console.WriteLine("\t\t{0, -15}", i.AvaliableSidingLength);
+                        }
+                    }
+                    if (value.UsingProductTypes.Count() != 0)
+                    {
+                        Console.WriteLine("\n\t\tProducts\n");
+                        Console.WriteLine("\t\t{0, -23}{1, -23}{2, -23}", "Name", "Rolling Stock Type", "Producer");
+                        Console.WriteLine("\t\t--------------------------------------------------------");
+                        foreach (var i in value.UsingProductTypes)
+                        {
+                            Console.Write("\t\t{0, -23}", i.ProductTypeName);
+                            Console.Write("{0, -23}", i.RollingStockType);
+                            Console.WriteLine("{0, -23}", i.isProducer);
+                        }
+                    }
+                    Console.WriteLine("--------------------------------------------------------------------------------------------------------------------------------------\n");
+                }
+            }
+            else
+            {
+                Console.WriteLine("\tIndustry Name");
+                Console.WriteLine("-----------------------");
+                foreach (var value in industries)
+                {
+                    Console.WriteLine("{0})\t{1}", ++count, value.IndustryName);
+                }
+            }
         }
 
         private IEnumerable<Yard> GetPrintAllYardInformationForCurrentTrainLocation()
