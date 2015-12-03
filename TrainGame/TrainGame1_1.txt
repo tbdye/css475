@@ -723,18 +723,19 @@ CREATE PROCEDURE LoadRollingStock (
     IN Industry VARCHAR(255),
     IN CarID VARCHAR(255))
 BEGIN
-	IF (
+	SET @shippingID := (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID);
+    SET @productType := (SELECT ProductType FROM Shipments WHERE ShipmentID = @shippingID);
+    IF (
 			#Don't attempt to deliver something that has already been delivered
-			(SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID) NOT IN
-            (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID))
+			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = @shippingID)
         AND
-			#Take only cargo that is produced from an industry
-			(SELECT ProductType FROM Shipments WHERE ShipmentID = (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID)) IN
-            (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = TRUE)
+			#Verify that the industry produces this product type.
+			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = TRUE)
 		) THEN
-        #Remove the car from the train and add it to the industry.
+        #Remove the car from the train, add it to the industry, and mark the shipping order as picked up.
 		DELETE FROM ConsistedCars WHERE UsingCar = CarID;
 		INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
+		INSERT INTO ShipmentsPickedUp VALUES (@shippingID, DEFAULT);
 	ELSE
 		SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Cannot load this rolling stock car at this industry.';
