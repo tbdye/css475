@@ -8,10 +8,10 @@ using MySql.Data.MySqlClient;
 
 namespace Database_Presentation.Entities
 {
-    public class AllRollingStock : DBEntity
+    public class RollingStock : DBEntity
     {
-        public AllRollingStock() { }
-        public AllRollingStock(MySqlDataReader reader)
+        public RollingStock() { }
+        public RollingStock(MySqlDataReader reader)
         {
             this.SetUp(reader);
         }
@@ -31,14 +31,14 @@ namespace Database_Presentation.Entities
 
         public override DBEntity GetNew(MySqlDataReader reader)
         {
-            return new AllRollingStock(reader);
+            return new RollingStock(reader);
         }
 
         public int TrainNumber { get; set; }
-        public string CarID { get; set; }
-        public string YardName { get; set; }
-        public string CarType { get; set; }
-        public string Description { get; set; }
-        public int CarLength { get; set; }
+        public string CarID { get; set; } //
+        public string YardName { get; set; } //
+        public string CarType { get; set; } //
+        public string Description { get; set; } //
+        public int CarLength { get; set; } //
     }
 }

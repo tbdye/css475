@@ -38,7 +38,7 @@ namespace Database_Presentation
             ExecuteNonQuery(cmd);
         }
 
-        public IEnumerable<AllRollingStock> GetAllRollingStockForTrainDB(int trainNumber)
+        public IEnumerable<RollingStock> GetAllRollingStockForTrainDB(int trainNumber)
         {
             string cmd = String.Format("Select * from ConsistedCars as cc "
                                         + "inner join RollingStockAtYards as rsy "
@@ -50,7 +50,7 @@ namespace Database_Presentation
                                         + "inner join RollingStockTypes as rst "
                                         + "on rsc.CarType = rst.CarTypeName "
                                         + "Where OnTrain = {0}; ", trainNumber);
-            return convert<AllRollingStock>(ExecuteReaderList(cmd, new AllRollingStock()));
+            return ConvertToList<RollingStock>(ExecuteReaderList(cmd, new RollingStock()));
         }
 
         public IEnumerable<Train> GetAllTrainInfoDB()
@@ -59,13 +59,13 @@ namespace Database_Presentation
                                         + "INNER JOIN TrainLocations as tl "
                                         + "ON t.TrainNumber = tl.TrainNumber "
                                         + "ORDER BY t.TrainNumber");
-            return convert<Train>(ExecuteReaderList(cmd, new Train())).ToList();
+            return ConvertToList<Train>(ExecuteReaderList(cmd, new Train())).ToList();
         }
 
         public IEnumerable<Crew> GetCrewInfoDB()
         {
             string cmd = "SELECT * FROM Crews;";
-            return convert<Crew>(ExecuteReaderList(cmd, new Crew()));
+            return ConvertToList<Crew>(ExecuteReaderList(cmd, new Crew()));
         }
 
         public IEnumerable<Industry> GetAllIndustriesOnModuleDB(string ModuleName)
@@ -76,7 +76,7 @@ namespace Database_Presentation
                                         + "inner join IndustryActivities as iaa "
                                         + "on iaa.IndustryName = i.IndustryName "
                                         + "WHERE i.OnModule = '{0}'", ModuleName);
-            var toReturn = convert<Industry>(ExecuteReaderList(cmd, new Industry()));
+            var toReturn = ConvertToList<Industry>(ExecuteReaderList(cmd, new Industry()));
             if (toReturn != null)
             {
                 foreach (var value in toReturn)
@@ -86,6 +86,17 @@ namespace Database_Presentation
                 }
             }
             return toReturn;
+        }
+
+        public IEnumerable<Industry> GetAllIndustriesDB()
+        {
+            string cmd = "SELECT * FROM Industries AS i\n"
+                            + "INNER JOIN IndustriesAvailable AS ia\n"
+                            + "ON i.IndustryName = ia.IndustryName\n"
+                            + "INNER JOIN IndustryActivities AS iaa\n"
+                            + "ON ia.IndustryName = iaa.IndustryName;";
+
+            return ConvertToList<Industry>(ExecuteReaderList(cmd, new Industry()));
         }
 
         #region Helper Methods
@@ -102,7 +113,7 @@ namespace Database_Presentation
         public IEnumerable<Train> GetTrains()
         {
             string cmd = String.Format("SELECT * FROM Trains as t INNER JOIN TrainLocations as tl on t.TrainNumber = tl.TrainNumber");
-            return convert<Train>(ExecuteReaderList(cmd, new Train()));
+            return ConvertToList<Train>(ExecuteReaderList(cmd, new Train()));
         }
 
         public Module GetModule(Train train)
@@ -114,7 +125,7 @@ namespace Database_Presentation
         public IEnumerable<Module> GetModules()
         {
             string cmd = String.Format("SELECT * FROM Modules;");
-            return convert<Module>(ExecuteReaderList(cmd, new Module()));
+            return ConvertToList<Module>(ExecuteReaderList(cmd, new Module()));
         }
 
         public IEnumerable<Product> GetAllProductsForindustryDB(string industryName)
@@ -123,7 +134,7 @@ namespace Database_Presentation
                                         + "INNER JOIN ProductTypes AS pt "
                                         + "ON pt.ProductTypeName = ip.UsingProductType "
                                         + "where ip.ForIndustry = '{0}';", industryName);
-            return convert<Product>(ExecuteReaderList(cmd, new Product()));
+            return ConvertToList<Product>(ExecuteReaderList(cmd, new Product()));
         }
 
         public IEnumerable<Siding> GetAllSidingsForIndustryDB(string industryName)
@@ -135,13 +146,28 @@ namespace Database_Presentation
                                         + "ON sal.ForIndustry = sa.ForIndustry "
                                         + "WHERE i.ForIndustry = '{0}' "
                                         + "GROUP BY SidingLength", industryName);
-            return convert<Siding>(ExecuteReaderList(cmd, new Siding()));
+            return ConvertToList<Siding>(ExecuteReaderList(cmd, new Siding()));
         }
 
         public IEnumerable<Yard> GetAllYardsOnModuleDB(string moduleName)
         {
             string cmd = String.Format("SELECT * FROM Yards WHERE OnModule = '{0}'", moduleName);
-            return convert<Yard>(ExecuteReaderList(cmd, new Yard()));
+            return ConvertToList<Yard>(ExecuteReaderList(cmd, new Yard()));
+        }
+
+        public IEnumerable<RollingStock> GetRollingStockValuesByIndustryNameDB(string IndustryName)
+        {
+            string cmd = String.Format("Select * from ConsistedCars as cc "
+                               + "inner join RollingStockAtYards as rsy "
+                               + "on cc.UsingCar = rsy.CarID "
+                               + "inner join RollingStockAtIndustries as rsi "
+                               + "on cc.UsingCar = rsi.CarID "
+                               + "inner join RollingStockCars as rsc "
+                               + "on cc.UsingCar = rsc.CarID "
+                               + "inner join RollingStockTypes as rst "
+                               + "on rsc.CarType = rst.CarTypeName "
+                               + "Where AtIndustry = '{0}'; ", IndustryName);
+            return ConvertToList<RollingStock>(ExecuteReaderList(cmd, new RollingStock()));
         }
 
         private IEnumerable<DBEntity> ExecuteReaderList(string cmd, DBEntity type)
@@ -222,7 +248,7 @@ namespace Database_Presentation
             }
         }
 
-        private IEnumerable<T> convert<T>(IEnumerable<DBEntity> values) where T : DBEntity
+        private IEnumerable<T> ConvertToList<T>(IEnumerable<DBEntity> values) where T : DBEntity
         {
             List<T> toReturn = new List<T>();
             foreach (var value in values)
