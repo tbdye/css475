@@ -717,6 +717,31 @@ BEGIN
 END$$
 DELIMITER ;*/
 
+#LoadRollingStock
+DELIMITER $$
+CREATE PROCEDURE LoadRollingStock (
+    IN Industry VARCHAR(255),
+    IN CarID VARCHAR(255))
+BEGIN
+	IF (
+			#Don't attempt to deliver something that has already been delivered
+			(SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID) NOT IN
+            (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID))
+        AND
+			#Take only cargo that is produced from an industry
+			(SELECT ProductType FROM Shipments WHERE ShipmentID = (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID)) IN
+            (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = TRUE)
+		) THEN
+        #Remove the car from the train and add it to the industry.
+		DELETE FROM ConsistedCars WHERE UsingCar = CarID;
+		INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
+	ELSE
+		SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot load this rolling stock car at this industry.';
+	END IF;
+END $$
+DELIMITER ;
+
 #This test data creates a small model railroad layout, train cars, and players.
 #	Data insertion is handled in a sequence order that is either required by
 #	the database or encountered through normal program interaction.  This data,
@@ -853,7 +878,7 @@ INSERT INTO Junctions VALUES (DEFAULT, 'Crossover', 'Red', 'Yellow');
 INSERT INTO Junctions VALUES (DEFAULT, 'Crossover', 'Yellow', 'Blue');
 
 #Populate the 180 Farms module.
-INSERT INTO Modules VALUES ('180 Farms', 'Al Lowe', 'oNeTrak', '180 Corner', 'NULL');
+INSERT INTO Modules VALUES ('180 Farms', 'Al Lowe', 'oNeTrak', '180 Corner', NULL);
 INSERT INTO MainLines VALUES ('Red', '180 Farms', TRUE);
 INSERT INTO Industries VALUES ('Half Circle Farms', '180 Farms', 'Red');
 INSERT INTO IndustriesAvailable VALUES ('Half Circle Farms', TRUE);
