@@ -743,6 +743,29 @@ BEGIN
 END $$
 DELIMITER ;
 
+#UnloadRollingStock
+DELIMITER $$
+CREATE PROCEDURE UnloadRollingStock (
+    IN Industry VARCHAR(255),
+    IN CarID VARCHAR(255))
+BEGIN
+	SET @shippingID := (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID);
+	SET @productType := (SELECT ProductType FROM Shipments WHERE ShipmentID = @shippingID);
+    IF (
+			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = @shippingID)
+        AND
+			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = @industry AND IsProducer = FALSE)
+		) THEN
+	DELETE FROM ConsistedCars WHERE UsingCar = CarID;
+	INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
+	INSERT INTO ShipmentsDelivered VALUES (@shippingID, DEFAULT);
+	ELSE
+		SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot unload this rolling stock car at this industry.';
+	END IF;
+END $$
+DELIMITER ;
+
 #This test data creates a small model railroad layout, train cars, and players.
 #	Data insertion is handled in a sequence order that is either required by
 #	the database or encountered through normal program interaction.  This data,

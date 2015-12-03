@@ -1,4 +1,10 @@
 #Game play and database interactions to go here.
+#The following user variables are in use:
+#	@player
+#	@playerTrain
+#	@playerModule
+#	@playerIndustry
+#	@playerCar
 
 #Add Crew To Train
 SET @player = 'Thomas';
@@ -206,7 +212,10 @@ FROM
 WHERE
     i.AtIndustry = @playerIndustry;
 
-
-
-
+#Unload Rolling Stock (formerly Deliver Rolling Stock)
+SET @playerModule = '180 Farms';
+UPDATE TrainLocations SET OnModule = @playerModule WHERE TrainNumber = @playerTrain;
+SET @playerIndustry = 'Half Circle Farms';
+SET @playerCar = 'AK';
+CALL UnloadRollingStock(@playerIndustry, @playerCar);
 
