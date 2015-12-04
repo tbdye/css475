@@ -40,10 +40,6 @@ namespace Database_Presentation
         public IEnumerable<RollingStock> GetAllRollingStockForTrainDB(int trainNumber)
         {
             string cmd = String.Format("Select * from ConsistedCars as cc "
-                                        + "inner join RollingStockAtYards as rsy "
-                                        + "on cc.UsingCar = rsy.CarID "
-                                        + "inner join RollingStockAtIndustries as rsi "
-                                        + "on cc.UsingCar = rsi.CarID "
                                         + "inner join RollingStockCars as rsc "
                                         + "on cc.UsingCar = rsc.CarID "
                                         + "inner join RollingStockTypes as rst "
@@ -98,13 +94,62 @@ namespace Database_Presentation
             return ConvertToList<Industry>(ExecuteReaderList(cmd, new Industry()));
         }
 
-        public bool DropOffCarAtLocationDB(string carId, string industryName)
+        /// <summary>
+        ///  This function moves a car from one industry to another,
+        ///  Upon success that car will also be removed from the train.
+        /// </summary>
+        /// <param name="trainNumber">The train number of the currentplayer</param>
+        /// <param name="carId">The carID of the car that you want to remove</param>
+        /// <param name="industryName">The industry which the car is currently at</param>
+        /// <returns></returns>
+        public bool DropOffCarAtLocationDB(int trainNumber, string carId, string industryName)
         {
             string cmd = String.Format("UPDATE RollingStockAtIndustries \n "
                                         + "SET AtIndustry = '{0}' \n"
                                         + "WHERE CarID = '{1}'"
                                         , industryName, carId);
-            return ExecuteNonQuery(cmd);
+            var success = ExecuteNonQuery(cmd);
+            if (success)
+            {
+                cmd = String.Format("DELETE FROM ConsistedCars "
+                                     + "WHERE OnTrain = {0} "
+                                     + "AND UsingCar = '{1}'"
+                                     , trainNumber, carId);
+                return ExecuteNonQuery(cmd);
+            }
+            // Could not add the car to the industry, so do not remove it from car.
+            return false;
+        }
+
+        public IEnumerable<RollingStock> GetAllRollingStockForModuleDB(string ModuleName)
+        {
+            string cmd = String.Format("Select * from ConsistedCars as cc "
+                                        + "inner join RollingStockAtYards as rsy "
+                                        + "on cc.UsingCar = rsy.CarID "
+                                        + "inner join RollingStockAtIndustries as rsi "
+                                        + "on cc.UsingCar = rsi.CarID "
+                                        + "inner join RollingStockCars as rsc "
+                                        + "on cc.UsingCar = rsc.CarID "
+                                        + "inner join RollingStockTypes as rst "
+                                        + "on rsc.CarType = rst.CarTypeName "
+                                        + "inner join Yards as y "
+                                        + "on y.YardName = AtYard "
+                                        + "Where OnModule = '{0}';", ModuleName);
+            return ConvertToList<RollingStock>(ExecuteReaderList(cmd, new RollingStock()));
+        }
+
+        public bool AddCarToTrainDB(int trainNumber, string carId, string industryName)
+        {
+            string cmd = String.Format("INSERT INTO ConsistedCars VALUES ({0}, '{1}', DEFAULT);",
+                                            trainNumber, carId);
+            var success = ExecuteNonQuery(cmd);
+            if (success)
+            {
+                cmd = String.Format("DELETE FROM RollingStockAtIndustries WHERE CarID = '{0}' AND AtIndustry = '{1}';", carId, industryName);
+                return ExecuteNonQuery(cmd);
+            }
+            // Could not add the car to the train, so do not remove it from industry.
+            return false;
         }
 
         #region Helper Methods
@@ -116,24 +161,6 @@ namespace Database_Presentation
                                         + "ON tl.TrainNumber = t.TrainNumber\n"
                                         + "WHERE t.TrainNumber = {0};", trainNumber);
             return (Train)ExecuteReader(cmd, new Train());
-        }
-
-        public IEnumerable<Train> GetTrains()
-        {
-            string cmd = String.Format("SELECT * FROM Trains as t INNER JOIN TrainLocations as tl on t.TrainNumber = tl.TrainNumber");
-            return ConvertToList<Train>(ExecuteReaderList(cmd, new Train()));
-        }
-
-        public Module GetModule(Train train)
-        {
-            string cmd = String.Format("SELECT * FROM Modules WHERE ModuleName = '{0}'", train.Module);
-            return (Module)ExecuteReader(cmd, new Module());
-        }
-
-        public IEnumerable<Module> GetModules()
-        {
-            string cmd = String.Format("SELECT * FROM Modules;");
-            return ConvertToList<Module>(ExecuteReaderList(cmd, new Module()));
         }
 
         public IEnumerable<Product> GetAllProductsForindustryDB(string industryName)
@@ -165,13 +192,9 @@ namespace Database_Presentation
 
         public IEnumerable<RollingStock> GetRollingStockValuesByIndustryNameDB(string IndustryName)
         {
-            string cmd = String.Format("Select * from ConsistedCars as cc "
-                               + "inner join RollingStockAtYards as rsy "
-                               + "on cc.UsingCar = rsy.CarID "
-                               + "inner join RollingStockAtIndustries as rsi "
-                               + "on cc.UsingCar = rsi.CarID "
+            string cmd = String.Format("Select * from RollingStockAtIndustries as rsi "
                                + "inner join RollingStockCars as rsc "
-                               + "on cc.UsingCar = rsc.CarID "
+                               + "on rsi.CarID = rsc.CarID "
                                + "inner join RollingStockTypes as rst "
                                + "on rsc.CarType = rst.CarTypeName "
                                + "Where AtIndustry = '{0}'; ", IndustryName);
@@ -260,12 +283,16 @@ namespace Database_Presentation
 
         private IEnumerable<T> ConvertToList<T>(IEnumerable<DBEntity> values) where T : DBEntity
         {
-            List<T> toReturn = new List<T>();
-            foreach (var value in values)
+            if (values != null)
             {
-                toReturn.Add((T)value);
+                List<T> toReturn = new List<T>();
+                foreach (var value in values)
+                {
+                    toReturn.Add((T)value);
+                }
+                return toReturn;
             }
-            return toReturn;
+            return null;
         }
 
         #endregion Helper Methods

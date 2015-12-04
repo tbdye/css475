@@ -65,23 +65,19 @@ namespace Database_Presentation
                         break;
 
                     case 8:
-                        Console.WriteLine("Sorry, this is not currently implemented");
-                        EndFunction();
+                        PickUpRollingStockAtAnIndustryOnTheCurrentModule();
                         break;
 
                     case 9:
-                        Console.WriteLine("Sorry, this is not currently implemented");
-                        EndFunction();
+                        InsertACarIntoYourTrain();
                         break;
 
                     case 10:
-                        Console.WriteLine("Sorry, this is not currently implemented");
-                        EndFunction();
+                        RemoveACarFromyourTrain();
                         break;
 
                     case 11:
-                        Console.WriteLine("Sorry, this is not currently implemented");
-                        EndFunction();
+                        MoveYourTrainFromOneModuleToAnother();
                         break;
 
                     default:
@@ -246,44 +242,122 @@ namespace Database_Presentation
         private void DropOffRollingStockAtSpecifiedIndustryOnCurrentModule()
         {
             Console.Clear();
+            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
             Console.WriteLine("Displaying all of the Rolling Stock attached to your train...\n");
             List<RollingStock> rollingStockValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
             Console.Write("\nPlease select the number next to the rolling stock you want to drop off:  ");
             var rollingStockIndex = getInputAndReturnNumber(rollingStockValues.Count());
             Console.WriteLine("Displaying all of the industries attached to your current module...\n");
-            List<Industry> industryValues = GetPrintAllIndustriesOnModule(curPlayer.Train.Module).ToList();
+            List<Industry> industryValues = GetPrintAllIndustriesOnModule(curPlayer.Train.Module, false).ToList();
             Console.Write("\nPlease select the number next to the industry you want to drop off at:  ");
             var industryIndex = getInputAndReturnNumber(industryValues.Count());
-            var success = DB.DropOffCarAtLocationDB(rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+            var success = DB.DropOffCarAtLocationDB(curPlayer.Train.TrainNumber, rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
             if (success)
             {
-                Console.WriteLine("The car {0} was successfully dropped off at the industry {1}", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+                Console.WriteLine("The car {0} was successfully dropped off at the industry {1} and removed from your train", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
             }
             else
             {
-                Console.WriteLine("There was an issue dropping the car {0} at the industry {1}", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+                Console.WriteLine("There was an issue dropping the car {0} at the industry {1}. No cars were removed from your train.", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
                 EndFunctionError();
                 return;
             }
+
             EndFunction();
         }
 
         #endregion Option 7
 
+        #region Option 8
+
+        private void PickUpRollingStockAtAnIndustryOnTheCurrentModule()
+        {
+            Console.Clear();
+            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            Console.WriteLine("Displaying avaliable rolling stock to pickup at current module...\n");
+            List<Industry> industriesOnModule = GetPrintAllIndustriesOnModule().ToList();
+            if (industriesOnModule == null)
+            {
+                EndFunctionError();
+                return;
+            }
+            Console.Write("Please select the nuber next to the industry that holds the the rolling stock you want:   ");
+            var industryIndex = getInputAndReturnNumber(industriesOnModule.Count());
+            Console.WriteLine("Re-Displaying all rolling stock from the selected industry {0}", industriesOnModule[industryIndex].IndustryName);
+            List<RollingStock> rsValues = GetPrintRollingStockAtindustry(industriesOnModule[industryIndex].IndustryName).ToList();
+            if (rsValues == null && rsValues.Count() == 0)
+            {
+                Console.WriteLine("There was an issue retrieving the rolling stock values from the industry {0}", industriesOnModule[industryIndex].IndustryName);
+                EndFunctionError();
+                return;
+            }
+            Console.Write("Now, please select the rolling stock that you want to pick up from that industry:   ");
+            var rsIndex = getInputAndReturnNumber(rsValues.Count());
+            var success = DB.AddCarToTrainDB(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
+            if (!success)
+            {
+                Console.WriteLine("There was an issue picking up the car {0} at the industry {1}. No cars were added from your train or removed from the industry", rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
+                EndFunctionError();
+                return;
+            }
+            Console.WriteLine("You successfully removed the Car: {0} from the Industry {1} and added it to your train", rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
+            EndFunction();
+        }
+
+        #endregion Option 8
+
+        #region Option 9
+
+        private void InsertACarIntoYourTrain()
+        {
+            Console.Clear();
+            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            Console.WriteLine("Plus its not even written yet, dummy");
+
+            EndFunction();
+        }
+
+        #endregion Option 9
+
+        #region Option 10
+
+        private void RemoveACarFromyourTrain()
+        {
+            Console.Clear();
+            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            Console.WriteLine("Plus its not even written yet, dummy");
+            EndFunction();
+        }
+
+        #endregion Option 10
+
+        #region Option 11
+
+        private void MoveYourTrainFromOneModuleToAnother()
+        {
+            Console.Clear();
+            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            Console.WriteLine("Plus its not even written yet, dummy");
+            EndFunction();
+        }
+
+        #endregion Option 11
+
         #region HelperMethods
 
         // Helper Functions
-        private void EndFunction()
+        private IEnumerable<Industry> GetPrintAllIndustriesOnModule()
         {
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-        }
+            IEnumerable<Industry> industriesOnModule = DB.GetAllIndustriesOnModuleDB(curPlayer.Train.Module);
+            if (industriesOnModule == null)
+            {
+                Console.WriteLine("There was an error retrieving the rolling stock avaliable to your train..");
+                return null;
+            }
 
-        private void EndFunctionError()
-        {
-            Console.WriteLine("There was an error retrieving the results");
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+            PrintIndustriesWithRollingStockInformation(industriesOnModule);
+
+            return industriesOnModule;
         }
 
         private IEnumerable<Crew> GetPrintAllCrewInformation()
@@ -293,15 +367,7 @@ namespace Database_Presentation
             {
                 return null;
             }
-            Console.WriteLine("\tName\t\tDescription");
-            Console.WriteLine("--------------------------------------------");
-            var count = 0;
-            foreach (var crew in crews)
-            {
-                Console.Write("{0})\t{1,-15}", ++count, crew.CrewName);
-                Console.WriteLine("\t\t" + crew.Description);
-            }
-
+            PrintCrews(crews);
             return crews;
         }
 
@@ -321,17 +387,18 @@ namespace Database_Presentation
             {
                 return null;
             }
-            var count = 0;
-            Console.WriteLine("\tCar ID\t\tYard Name\t\tCar Type\t\tDescription\t\tCar Length");
-            Console.WriteLine("------------------------------------------------------------------------------------------");
-            foreach (var value in values)
+            PrintRollingStock(values);
+            return values;
+        }
+
+        private IEnumerable<RollingStock> GetPrintRollingStockForModule(string ModuleName)
+        {
+            IEnumerable<RollingStock> values = DB.GetAllRollingStockForModuleDB(ModuleName);
+            if (values == null)
             {
-                Console.Write("{0}\t{1}", ++count, value.CarID);
-                Console.Write("\t\t{0,-15}", value.YardName);
-                Console.Write("\t{0,-15}", value.CarType);
-                Console.Write("\t\t{0,-15}", value.Description.Equals("") ? "NONE" : value.Description);
-                Console.WriteLine("\t\t{0,-15}", value.CarLength);
+                return null;
             }
+            PrintRollingStock(values);
             return values;
         }
 
@@ -342,48 +409,65 @@ namespace Database_Presentation
             {
                 return null;
             }
-            var count = 0;
-            Console.WriteLine("\tCar ID\t\tYard Name\t\tCar Type\t\tDescription\t\tCar Length");
-            Console.WriteLine("----------------------------------------------------------------------------------------------------------");
-            foreach (var value in values)
-            {
-                Console.Write("{0})\t{1, -15}", ++count, value.CarID);
-                Console.Write("\t{0,-15}", value.YardName);
-                Console.Write("\t{0,-15}", value.CarType);
-                Console.Write("\t\t{0,-15}", value.Description.Equals("") ? "NONE" : value.Description);
-                Console.WriteLine("\t\t{0,-15}", value.CarLength);
-            }
+            PrintRollingStock(values);
             return values;
         }
 
-        /// <summary>
-        /// This will check a user input against a list,
-        /// and makes sure that it is a number
-        /// </summary>
-        /// <typeparam name="T">The type of list that you are passing</typeparam>
-        /// <param name="obj"></param>
-        /// <returns>Index of the list passed in</returns>
-        private int getInputAndReturnNumber(int count)
+        private IEnumerable<RollingStock> GetPrintRollingStockAtindustry(string IndustryName)
         {
-            int toReturn = 0;
-            while (!Int32.TryParse(Console.ReadLine(), out toReturn) || (toReturn >= count + 1 || toReturn <= 0))
+            IEnumerable<RollingStock> values = DB.GetRollingStockValuesByIndustryNameDB(IndustryName);
+            if (values == null)
             {
-                Console.WriteLine("This input {0} is not a valid input, \nPlease try again", toReturn);
-                if (toReturn >= count + 1 || toReturn <= 0)
-                {
-                    Console.WriteLine("Please select one of the numbers on the left of the list");
-                }
+                return null;
             }
-            return toReturn - 1;
+            PrintRollingStock(values);
+            return values;
         }
 
-        private IEnumerable<Industry> GetPrintAllIndustriesOnModule(string moduleName)
+        private IEnumerable<Industry> GetPrintAllIndustriesOnModule(string moduleName, bool rollingStock)
         {
             IEnumerable<Industry> industryValues = DB.GetAllIndustriesOnModuleDB(moduleName);
             if (industryValues == null)
                 return null;
-            PrintIndustries(industryValues, false);
+            if (rollingStock)
+            {
+                PrintIndustriesWithRollingStockInformation(industryValues);
+            }
+            else
+            {
+                PrintIndustries(industryValues, false);
+            }
             return industryValues;
+        }
+
+        private void PrintIndustriesWithRollingStockInformation(IEnumerable<Industry> values)
+        {
+            var industryCount = 0;
+            Console.WriteLine("\t{0}", "Industry Name");
+            Console.WriteLine("\t-------------------------------------------------------------\n");
+            foreach (var value in values)
+            {
+                var rsValues = DB.GetRollingStockValuesByIndustryNameDB(value.IndustryName);
+                Console.WriteLine("----------------------------------------------------------------------------------------------------------------------------");
+                if (rsValues != null && rsValues.Count() > 0)
+                {
+                    Console.WriteLine("{0})\t{1}\n", ++industryCount, value.IndustryName);
+                    Console.WriteLine("\t{0,-16}{1,-16}{2,-16}\t{3}", "CarID", "Car Length", "Car Type", "Description");
+                    Console.WriteLine("\t---------------------------------------------------------------------------\n");
+                    foreach (var rsValue in rsValues)
+                    {
+                        Console.Write("\t{0}", rsValue.CarID);
+                        Console.Write("\t\t{0, -15}", rsValue.CarLength);
+                        Console.Write("\t{0, -15}", rsValue.CarType);
+                        Console.WriteLine("\t\t{0, -15}\n", rsValue.Description.Equals("") ? "None" : rsValue.Description);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("\t{0}\t-\tUNAVALIABLE\n", value.IndustryName);
+                    Console.WriteLine("\t\tThis industry has no cars currently\n");
+                }
+            }
         }
 
         /// <summary>
@@ -399,37 +483,7 @@ namespace Database_Presentation
             {
                 return null;
             }
-            if (verbose)
-            {
-                Console.WriteLine("\tTrain Number\tLead Power\t\tDCC Address\t\tModule\t\t\tTimeUpdated");
-                Console.WriteLine("----------------------------------------------------------------------------------------------------------------------");
-            }
-            else
-            {
-                Console.WriteLine("\tTrain Number\tLead Power\tDCC Address");
-                Console.WriteLine("--------------------------------------------------------------------------");
-            }
-            var count = 0;
-            if (verbose)
-            {
-                foreach (var train in trains)
-                {
-                    Console.Write("{0})\t{1}", ++count, train.TrainNumber);
-                    Console.Write("\t\t{0, -15}", train.LeadPower);
-                    Console.Write("\t\t{0, -15}", train.DCCAddress);
-                    Console.Write("\t\t{0, -15}", train.Module);
-                    Console.WriteLine("\t{0, -15}", train.TimeModuleUpdated);
-                }
-            }
-            else
-            {
-                foreach (var train in trains)
-                {
-                    Console.Write("{0})\t{1}", ++count, train.TrainNumber);
-                    Console.Write("\t\t" + train.LeadPower);
-                    Console.WriteLine("\t\t" + train.DCCAddress);
-                }
-            }
+            PrintTrains(trains, verbose);
             return trains;
         }
 
@@ -437,20 +491,16 @@ namespace Database_Presentation
         /// Displays all of the rolling stock information for a passed in train number
         /// </summary>
         /// <param name="trainNumber"></param>
-        private void DisplayRollingStockForSpecifiedTrain(int trainNumber)
+        private IEnumerable<RollingStock> DisplayRollingStockForSpecifiedTrain(int trainNumber)
         {
             Console.WriteLine("Displaying Rolling stock information for Train Number {0}", trainNumber);
             List<RollingStock> values = DB.GetAllRollingStockForTrainDB(trainNumber).ToList();
-            Console.WriteLine("Car ID\t\tYard Name\t\tCar Type\t\tDescription\t\tCar Length");
-            Console.WriteLine("-----------------------------------------------------------------------------------------------------");
-            foreach (var value in values)
+            if (values == null)
             {
-                Console.Write("{0}", value.CarID);
-                Console.Write("\t\t{0,-15}", value.YardName);
-                Console.Write("\t{0,-15}", value.CarType);
-                Console.Write("\t\t{0,-15}", value.Description.Equals("") ? "NONE" : value.Description);
-                Console.WriteLine("\t\t{0,-15}", value.CarLength);
+                return null;
             }
+            PrintRollingStock(values);
+            return values;
         }
 
         private IEnumerable<Industry> GetPrintAllIndustryInformationForCurrentTrain()
@@ -477,8 +527,8 @@ namespace Database_Presentation
                     Console.Write("{0})\t{1}", ++count, value.IndustryName);
                     Console.Write("\t{0,-15}", value.OnModule);
                     Console.Write("\t{0,-15}", value.OnMainLine);
-                    Console.Write("\t\t{0,-15}", value.isAvaliable);
-                    Console.WriteLine("\t\t{0,-15}", value.ActivityLevel);
+                    Console.Write("\t{0,-15}", value.isAvaliable);
+                    Console.WriteLine("\t{0,-15}", value.ActivityLevel);
                     if (value.Sidings.Count() != 0)
                     {
                         Console.WriteLine("\n\t\tSiding\n");
@@ -517,6 +567,80 @@ namespace Database_Presentation
             }
         }
 
+        private void PrintRollingStock(IEnumerable<RollingStock> values)
+        {
+            var count = 0;
+            Console.WriteLine("\tCar ID\t\tCar Type\t\tDescription\t\tCar Length");
+            Console.WriteLine("----------------------------------------------------------------------------------");
+            foreach (var value in values)
+            {
+                Console.Write("{0})\t{1, -15}", ++count, value.CarID);
+                Console.Write("\t{0,-15}", value.CarType);
+                Console.Write("\t\t{0,-15}", value.Description.Equals("") ? "NONE" : value.Description);
+                Console.WriteLine("\t\t{0,-15}", value.CarLength);
+            }
+        }
+
+        private void PrintCrews(IEnumerable<Crew> values)
+        {
+            Console.WriteLine("\tName\t\tDescription");
+            Console.WriteLine("--------------------------------------------");
+            var count = 0;
+            foreach (var crew in values)
+            {
+                Console.Write("{0})\t{1,-15}", ++count, crew.CrewName);
+                Console.WriteLine("\t\t" + crew.Description);
+            }
+        }
+
+        private void PrintYards(IEnumerable<Yard> values)
+        {
+            var count = 0;
+            Console.WriteLine("\tName\t\t\tMain Line");
+            Console.WriteLine("\t---------------------------------");
+            foreach (var value in values)
+            {
+                Console.Write("{0})\t{1}", ++count, value.Name);
+                Console.WriteLine("\t{0}", value.MainLine);
+            }
+            Console.WriteLine();
+        }
+
+        private void PrintTrains(IEnumerable<Train> values, bool verbose)
+        {
+            if (verbose)
+            {
+                Console.WriteLine("\tTrain Number\tLead Power\t\tDCC Address\t\tModule\t\t\tTimeUpdated");
+                Console.WriteLine("----------------------------------------------------------------------------------------------------------------------");
+            }
+            else
+            {
+                Console.WriteLine("\tTrain Number\tLead Power\tDCC Address");
+                Console.WriteLine("--------------------------------------------------------------------------");
+            }
+            var count = 0;
+            if (verbose)
+            {
+                foreach (var train in values)
+                {
+                    Console.Write("{0})\t{1}", ++count, train.TrainNumber);
+                    Console.Write("\t\t{0, -15}", train.LeadPower);
+                    Console.Write("\t\t{0, -15}", train.DCCAddress);
+                    Console.Write("\t\t{0, -15}", train.Module);
+                    Console.WriteLine("\t{0, -15}", train.TimeModuleUpdated);
+                }
+            }
+            else
+            {
+                foreach (var train in values)
+                {
+                    Console.Write("{0})\t{1}", ++count, train.TrainNumber);
+                    Console.Write("\t\t" + train.LeadPower);
+                    Console.WriteLine("\t\t" + train.DCCAddress);
+                }
+            }
+        }
+
         private IEnumerable<Yard> GetPrintAllYardInformationForCurrentTrainLocation()
         {
             Console.WriteLine("Retrieving all Yard Information for Train #{0}...", curPlayer.Train.TrainNumber);
@@ -525,16 +649,7 @@ namespace Database_Presentation
             {
                 return null;
             }
-            var count = 0;
-            Console.WriteLine("\tName\t\t\tMain Line");
-            Console.WriteLine("\t---------------------------------");
-            foreach (var value in yards)
-            {
-                Console.Write("{0})\t{1}", ++count, value.Name);
-                Console.WriteLine("\t{0}", value.MainLine);
-            }
-            Console.WriteLine();
-
+            PrintYards(yards);
             return yards;
         }
 
@@ -594,6 +709,42 @@ namespace Database_Presentation
             Console.WriteLine("            {|_|_|__|;|______|;|________________|;|________________|;|________________|;|________________|;|________________|;|________________|;|________________|;|_________|;");
             Console.WriteLine("             /oo--OO   oo  oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo     oo");
             Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+        }
+
+        private void EndFunction()
+        {
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+        }
+
+        private void EndFunctionError()
+        {
+            Console.WriteLine("There was an error retrieving the results");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+        }
+
+        /// <summary>
+        /// This will check a user input against a list,
+        /// and makes sure that it is a number
+        /// </summary>
+        /// <typeparam name="T">The type of list that you are passing</typeparam>
+        /// <param name="obj"></param>
+        /// <returns>Index of the list passed in</returns>
+        private int getInputAndReturnNumber(int count)
+        {
+            int toReturn = 0;
+            var input = Console.ReadLine();
+            while (!Int32.TryParse(input, out toReturn) || (toReturn >= count + 1 || toReturn <= 0))
+            {
+                Console.WriteLine("This input, {0} is not a valid input, \nPlease try again", input);
+                if (toReturn >= count + 1 || toReturn <= 0)
+                {
+                    Console.WriteLine("Please select one of the numbers on the left of the list");
+                }
+                input = Console.ReadLine();
+            }
+            return toReturn - 1;
         }
 
         #endregion HelperMethods
