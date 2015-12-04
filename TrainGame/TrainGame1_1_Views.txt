@@ -1,8 +1,36 @@
-#Game play and database interactions to go here.
+#Game play and database testing interactions go here.
+#The following user variables are in use:
+#	@player
+#	@playerTrain
+#	@playerModule
+#	@playerIndustry
+#	@playerCar
+#	@playerYard
 
-SET @playerModule = 'Black River Yard';
-SET @playerIndustry = 'MMI Transfer Site 3';
-SET @playerTrain = 3;
+#Create Demo Test Train
+INSERT INTO Trains VALUES (4, 1234, 1234, DEFAULT);
+INSERT INTO TrainLocations VALUES (4, 'Black River Yard', DEFAULT);
+
+INSERT INTO RollingStockCars VALUES ('XA', 'Reefer', NULL);
+INSERT INTO RollingStockAtYards VALUES ('XA', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Dairy', 'Half Circle Farms', 1, 'MMI Transfer Site 3', 1, DEFAULT);
+INSERT INTO Waybills VALUES ('XA', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO ConsistedCars VALUES (4, 'XA', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'XA';
+
+INSERT INTO RollingStockCars VALUES ('XB', 'Tank Car', NULL);
+INSERT INTO RollingStockAtYards VALUES ('XB', 'Black River Yard', DEFAULT);
+INSERT INTO Shipments VALUES (DEFAULT, 'Gasses', 'LGP Professionals', 4, 'Palin Interchange', 1, DEFAULT);
+INSERT INTO Waybills VALUES ('XB', LAST_INSERT_ID(), 'Black River Yard');
+INSERT INTO ConsistedCars VALUES (4, 'XB', DEFAULT);
+DELETE FROM RollingStockAtYards WHERE CarID = 'XB';
+
+INSERT INTO Crews VALUES ('Demo Player', NULL);
+
+#Add Crew To Train
+SET @player = 'Demo Player';
+SET @playerTrain = 4;
+INSERT INTO TrainCrews VALUES (@playerTrain, @player, DEFAULT);
 
 #Display List of Modules:
 SELECT 
@@ -16,74 +44,9 @@ WHERE
             ModulesAvailable
         WHERE
             IsAvailable = TRUE);
-			
-#Display Module:
-SELECT 
-    *
-FROM
-    Industries
-WHERE
-    IndustryName IN (SELECT 
-            IndustryName
-        FROM
-            IndustriesAvailable
-        WHERE
-            IsAvailable = TRUE)
-        AND OnModule = @playerModule;
-
-#Display Industry:
-SELECT 
-    s.*, p.UsingProductType
-FROM
-    IndustrySidings s
-        JOIN
-    IndustryProducts p ON s.ForIndustry = p.ForIndustry
-WHERE
-    p.UsingProductType NOT IN (SELECT 
-            ForProductType
-        FROM
-            SidingAssignments
-        WHERE
-            ForIndustry = @playerIndustry)
-        AND s.SidingNumber NOT IN (SELECT 
-            SidingNumber
-        FROM
-            SidingAssignments
-        WHERE
-            ForIndustry = @playerIndustry)
-        AND s.ForIndustry = @playerIndustry 
-UNION SELECT 
-    s.*, p.UsingProductType
-FROM
-    IndustrySidings s
-        JOIN
-    IndustryProducts p ON s.ForIndustry = p.ForIndustry
-WHERE
-    p.UsingProductType IN (SELECT 
-            ForProductType
-        FROM
-            SidingAssignments
-        WHERE
-            ForIndustry = @playerIndustry)
-        AND s.SidingNumber IN (SELECT 
-            SidingNumber
-        FROM
-            SidingAssignments
-        WHERE
-            ForIndustry = @playerIndustry)
-        AND s.ForIndustry = @playerIndustry;
-
-#Display Rolling Stock At Industry:	
-SELECT 
-    c.CarID, c.CarType, i.AtIndustry, i.TimeArrived
-FROM
-    RollingStockCars c
-        JOIN
-    RollingStockAtIndustries i ON c.CarID = i.CarID
-WHERE
-    i.AtIndustry = @playerIndustry;
 
 #Display User Train:
+SET @playerTrain = 4;
 SELECT 
     t.TrainNumber,
     t.LeadPower,
@@ -99,8 +62,9 @@ WHERE
     t.TrainNumber = c.OnTrain
         AND t.TrainNumber = l.TrainNumber
         AND t.TrainNumber = @playerTrain;
-
+		
 #Display Train Consist:		
+SET @playerTrain = 4;
 SELECT 
     r.CarID,
     r.CarType,
@@ -192,4 +156,133 @@ WHERE
             ConsistedCars
         WHERE
             OnTrain = @playerTrain);
+			
+#Check-In at Module (Move Train)
+SET @playerModule = '180 Farms';
+SET @playerTrain = 4;
+UPDATE TrainLocations SET OnModule = @playerModule WHERE TrainNumber = @playerTrain;	
 
+#Display Module:
+SET @playerModule = '180 Farms';
+SELECT 
+    *
+FROM
+    Industries
+WHERE
+    IndustryName IN (SELECT 
+            IndustryName
+        FROM
+            IndustriesAvailable
+        WHERE
+            IsAvailable = TRUE)
+        AND OnModule = @playerModule;
+		
+#Load Rolling Stock (formerly Deliver Rolling Stock)
+SET @playerIndustry = 'Half Circle Farms';
+SET @playerCar = 'XA';
+CALL LoadRollingStock(@playerIndustry, @playerCar);
+
+#Display Rolling Stock At Industry:
+SET @playerIndustry = 'Half Circle Farms';
+SELECT 
+    c.CarID, c.CarType, i.AtIndustry, i.TimeArrived
+FROM
+    RollingStockCars c
+        JOIN
+    RollingStockAtIndustries i ON c.CarID = i.CarID
+WHERE
+    i.AtIndustry = @playerIndustry;
+
+#Receive Rolling Stock:
+SET @playerCar = 'XA';
+SET @playerTrain = 4;
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM RollingStockAtIndustries WHERE CarID = @playerCar;
+SET SQL_SAFE_UPDATES = 1;
+INSERT INTO ConsistedCars VALUES (@playerTrain, @playerCar, DEFAULT);	
+
+#Check-In at Module (Move Train)
+SET @playerModule = 'Black River Yard';
+SET @playerTrain = 4;
+UPDATE TrainLocations SET OnModule = @playerModule WHERE TrainNumber = @playerTrain;
+
+#Display Industry:
+SET @playerIndustry = 'MMI Transfer Site 3';
+SELECT 
+    s.*, p.UsingProductType
+FROM
+    IndustrySidings s
+        JOIN
+    IndustryProducts p ON s.ForIndustry = p.ForIndustry
+WHERE
+    p.UsingProductType NOT IN (SELECT 
+            ForProductType
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.SidingNumber NOT IN (SELECT 
+            SidingNumber
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.ForIndustry = @playerIndustry 
+UNION SELECT 
+    s.*, p.UsingProductType
+FROM
+    IndustrySidings s
+        JOIN
+    IndustryProducts p ON s.ForIndustry = p.ForIndustry
+WHERE
+    p.UsingProductType IN (SELECT 
+            ForProductType
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.SidingNumber IN (SELECT 
+            SidingNumber
+        FROM
+            SidingAssignments
+        WHERE
+            ForIndustry = @playerIndustry)
+        AND s.ForIndustry = @playerIndustry;
+
+#Unload Rolling Stock (formerly Deliver Rolling Stock)
+SET @playerIndustry = 'MMI Transfer Site 3';
+SET @playerCar = 'XA';
+CALL UnloadRollingStock(@playerIndustry, @playerCar);
+
+#Receive Rolling Stock:
+SET @playerCar = 'XA';
+SET @playerTrain = 4;
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM RollingStockAtIndustries WHERE CarID = @playerCar;
+SET SQL_SAFE_UPDATES = 1;
+INSERT INTO ConsistedCars VALUES (@playerTrain, @playerCar, DEFAULT);
+
+#Return Rolling Stock to Yard:
+SET @playerTrain = 4;
+SET @playerCar = 'XA';
+SET @playerYard = 'Black River Yard';
+DELETE FROM ConsistedCars WHERE OnTrain = @playerTrain AND UsingCar = @playerCar;
+INSERT INTO RollingStockAtYards VALUES (@playerCar, @playerYard, DEFAULT);
+SET SQL_SAFE_UPDATES = 0;
+DELETE FROM Waybills WHERE OnCar = @playerCar;
+SET SQL_SAFE_UPDATES = 1;
+
+#Remove Crew From Train
+SET @playerTrain = 4;
+DELETE FROM TrainCrews WHERE OnTrain = @playerTrain;
+
+#End of demo
+
+#Clean up from previous demo
+DELETE FROM Crews WHERE CrewName = 'Demo Player';
+DELETE FROM ConsistedCars WHERE OnTrain = 4;
+DELETE FROM Waybills WHERE OnCar = 'XB';
+DELETE FROM RollingStockAtYards WHERE CarID = 'XA';
+DELETE FROM RollingStockCars WHERE CarID = 'XA';
+DELETE FROM RollingStockCars WHERE CarID = 'XB';
+DELETE FROM Trains WHERE TrainNumber = 4;
