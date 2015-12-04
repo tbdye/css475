@@ -104,10 +104,10 @@ namespace Database_Presentation
         /// <returns></returns>
         public bool DropOffCarAtLocationDB(int trainNumber, string carId, string industryName)
         {
-            string cmd = String.Format("UPDATE RollingStockAtIndustries \n "
-                                        + "SET AtIndustry = '{0}' \n"
-                                        + "WHERE CarID = '{1}'"
-                                        , industryName, carId);
+            string cmd = String.Format("INSERT INTO RollingStockAtIndustries \n "
+                                        + "VALUES ('{0}', '{1}', DEFAULT);"
+                                        , carId, industryName);
+
             var success = ExecuteNonQuery(cmd);
             if (success)
             {

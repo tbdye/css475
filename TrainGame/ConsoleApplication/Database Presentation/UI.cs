@@ -9,11 +9,14 @@ namespace Database_Presentation
     {
         #region Set up methods
 
+        private bool throwAway;
+
         private DBHandler DB;
         private Player curPlayer;
 
         public UI()
         {
+            throwAway = false;
             DB = new DBHandler();
             curPlayer = new Player();
             DrawTrain();
@@ -88,12 +91,6 @@ namespace Database_Presentation
 
                 Console.Clear();
                 PrintOptions();
-                Input = Console.ReadLine();
-                if (Input.ToUpper().Equals("EXIT") || Input.ToUpper().Equals("QUIT")
-                    || Input.ToUpper().Equals("E") || Input.ToUpper().Equals("Q"))
-                {
-                    return;
-                }
             }
         }
 
@@ -137,7 +134,7 @@ namespace Database_Presentation
                 return null;
             }
 
-            Console.Write("Please select the Crew Number you want to retrieve:  ");
+            Console.Write("Please select the Crew Number you want to retrieve ");
 
             var crewIndex = getInputAndReturnNumber(crew.Count());
 
@@ -148,7 +145,7 @@ namespace Database_Presentation
                 return new Tuple<Crew, Train>(crew[crewIndex], null);
             }
 
-            Console.Write("Please select the number next to the train you want to retrieve:  ");
+            Console.Write("Please select the number next to the train you want to retrieve ");
             var trainIndex = getInputAndReturnNumber(trains.Count());
 
             var toReturn = new Tuple<Crew, Train>(crew[crewIndex], trains[trainIndex]);
@@ -187,7 +184,7 @@ namespace Database_Presentation
                 EndFunctionError();
                 return;
             }
-            Console.Write("Please select the train that you want to show rolling stock for: ");
+            Console.Write("Please select the train that you want to show rolling stock for ");
             var trainIndex = getInputAndReturnNumber(trains.Count());
             DisplayRollingStockForSpecifiedTrain(trains[trainIndex].TrainNumber);
             EndFunction();
@@ -222,7 +219,7 @@ namespace Database_Presentation
                 EndFunctionError();
                 return;
             }
-            Console.WriteLine("Please select the number coresponding to the industry you want.");
+            Console.WriteLine("Please select the number coresponding to the industry you want ");
             var industryIndex = getInputAndReturnNumber(industryValues.Count());
             Console.WriteLine("Getting all rolling stock at industry {0}\n", industryValues[industryIndex].IndustryName);
             List<RollingStock> stockValues = GetPrintRollingStockForIndustry(industryValues[industryIndex].IndustryName).ToList();
@@ -245,11 +242,11 @@ namespace Database_Presentation
             Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
             Console.WriteLine("Displaying all of the Rolling Stock attached to your train...\n");
             List<RollingStock> rollingStockValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
-            Console.Write("\nPlease select the number next to the rolling stock you want to drop off:  ");
+            Console.Write("\nPlease select the number next to the rolling stock you want to drop off ");
             var rollingStockIndex = getInputAndReturnNumber(rollingStockValues.Count());
             Console.WriteLine("Displaying all of the industries attached to your current module...\n");
             List<Industry> industryValues = GetPrintAllIndustriesOnModule(curPlayer.Train.Module, false).ToList();
-            Console.Write("\nPlease select the number next to the industry you want to drop off at:  ");
+            Console.Write("\nPlease select the number next to the industry you want to drop off at ");
             var industryIndex = getInputAndReturnNumber(industryValues.Count());
             var success = DB.DropOffCarAtLocationDB(curPlayer.Train.TrainNumber, rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
             if (success)
@@ -275,14 +272,27 @@ namespace Database_Presentation
             Console.Clear();
             Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
             Console.WriteLine("Displaying avaliable rolling stock to pickup at current module...\n");
-            List<Industry> industriesOnModule = GetPrintAllIndustriesOnModule().ToList();
+            IEnumerable<TupleNode> allValues = new List<TupleNode>();
+            bool hasRollingStock = false;
+            List<Industry> industriesOnModule = GetPrintAllIndustriesOnModule(out allValues, out hasRollingStock).ToList();
+            if (!hasRollingStock)
+            {
+                Console.WriteLine("The module that you are currently at has no rolling to pick up. \nPlease move to another module to add to your train.");
+                EndFunction();
+                return;
+            }
             if (industriesOnModule == null)
             {
                 EndFunctionError();
                 return;
             }
-            Console.Write("Please select the nuber next to the industry that holds the the rolling stock you want:   ");
+            Console.Write("Please select the nuber next to the industry that holds the the rolling stock you want ");
             var industryIndex = getInputAndReturnNumber(industriesOnModule.Count());
+            while (allValues.ToList()[industryIndex].rollingStock == null)
+            {
+                Console.Write("\nThe industry you chose: {0}. Has no rolling stock to pick up. \nPlease Choose Another ");
+                industryIndex = getInputAndReturnNumber(industriesOnModule.Count());
+            }
             Console.WriteLine("Re-Displaying all rolling stock from the selected industry {0}", industriesOnModule[industryIndex].IndustryName);
             List<RollingStock> rsValues = GetPrintRollingStockAtindustry(industriesOnModule[industryIndex].IndustryName).ToList();
             if (rsValues == null && rsValues.Count() == 0)
@@ -291,7 +301,7 @@ namespace Database_Presentation
                 EndFunctionError();
                 return;
             }
-            Console.Write("Now, please select the rolling stock that you want to pick up from that industry:   ");
+            Console.Write("Now, please select the rolling stock that you want to pick up from that industry ");
             var rsIndex = getInputAndReturnNumber(rsValues.Count());
             var success = DB.AddCarToTrainDB(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
             if (!success)
@@ -346,8 +356,10 @@ namespace Database_Presentation
         #region HelperMethods
 
         // Helper Functions
-        private IEnumerable<Industry> GetPrintAllIndustriesOnModule()
+        private IEnumerable<Industry> GetPrintAllIndustriesOnModule(out IEnumerable<TupleNode> setMe, out bool industriesHaveRollingStock)
         {
+            setMe = null;
+            industriesHaveRollingStock = false;
             IEnumerable<Industry> industriesOnModule = DB.GetAllIndustriesOnModuleDB(curPlayer.Train.Module);
             if (industriesOnModule == null)
             {
@@ -355,7 +367,7 @@ namespace Database_Presentation
                 return null;
             }
 
-            PrintIndustriesWithRollingStockInformation(industriesOnModule);
+            setMe = PrintIndustriesWithRollingStockInformation(industriesOnModule, out industriesHaveRollingStock);
 
             return industriesOnModule;
         }
@@ -431,7 +443,7 @@ namespace Database_Presentation
                 return null;
             if (rollingStock)
             {
-                PrintIndustriesWithRollingStockInformation(industryValues);
+                PrintIndustriesWithRollingStockInformation(industryValues, out throwAway);
             }
             else
             {
@@ -440,8 +452,10 @@ namespace Database_Presentation
             return industryValues;
         }
 
-        private void PrintIndustriesWithRollingStockInformation(IEnumerable<Industry> values)
+        private IEnumerable<TupleNode> PrintIndustriesWithRollingStockInformation(IEnumerable<Industry> values, out bool thereIsRollingStock)
         {
+            thereIsRollingStock = false;
+            List<TupleNode> toReturn = new List<TupleNode>();
             var industryCount = 0;
             Console.WriteLine("\t{0}", "Industry Name");
             Console.WriteLine("\t-------------------------------------------------------------\n");
@@ -451,6 +465,8 @@ namespace Database_Presentation
                 Console.WriteLine("----------------------------------------------------------------------------------------------------------------------------");
                 if (rsValues != null && rsValues.Count() > 0)
                 {
+                    thereIsRollingStock = true;
+                    toReturn.Add(new TupleNode(value, rsValues));
                     Console.WriteLine("{0})\t{1}\n", ++industryCount, value.IndustryName);
                     Console.WriteLine("\t{0,-16}{1,-16}{2,-16}\t{3}", "CarID", "Car Length", "Car Type", "Description");
                     Console.WriteLine("\t---------------------------------------------------------------------------\n");
@@ -464,10 +480,12 @@ namespace Database_Presentation
                 }
                 else
                 {
+                    toReturn.Add(new TupleNode(value, null));
                     Console.WriteLine("\t{0}\t-\tUNAVALIABLE\n", value.IndustryName);
                     Console.WriteLine("\t\tThis industry has no cars currently\n");
                 }
             }
+            return toReturn;
         }
 
         /// <summary>
@@ -680,7 +698,7 @@ namespace Database_Presentation
             Console.WriteLine("\t\t10\t\tRemove Cars from a train");
             Console.WriteLine("\t\t11\t\tMove train from one module to another module");
             Console.WriteLine("_________________________________________________________________________________");
-            Console.Write("\nPlease enter the number next to your selection (or q to exit):  ");
+            Console.Write("\nPlease enter the number next to your selection ");
         }
 
         private void SetUpPlayer()
@@ -690,9 +708,9 @@ namespace Database_Presentation
             Console.WriteLine("Whats your name?");
             curPlayer.Name = Console.ReadLine();
             Console.WriteLine("Now, lets choose your train...");
-            Console.WriteLine("Avaliable Train");
+            Console.WriteLine("Avaliable Train(s)");
             List<Train> trains = GetPrintAllTrainInformation(true).ToList();
-            Console.Write("Please select the number related to your train:  ");
+            Console.Write("Please select the number related to your train ");
             var trainIndex = getInputAndReturnNumber(trains.Count());
             curPlayer.Train = trains[trainIndex];
             curPlayer.Train.Module = curPlayer.Train.Module;
@@ -734,14 +752,21 @@ namespace Database_Presentation
         private int getInputAndReturnNumber(int count)
         {
             int toReturn = 0;
+            Console.Write("Q or Quit will exit the program:   ");
             var input = Console.ReadLine();
             while (!Int32.TryParse(input, out toReturn) || (toReturn >= count + 1 || toReturn <= 0))
             {
+                if (input.ToUpper().Equals("Q") || input.ToUpper().Equals("QUIT"))
+                {
+                    Console.WriteLine("Exiting the program.");
+                    System.Environment.Exit(1);
+                }
                 Console.WriteLine("This input, {0} is not a valid input, \nPlease try again", input);
                 if (toReturn >= count + 1 || toReturn <= 0)
                 {
                     Console.WriteLine("Please select one of the numbers on the left of the list");
                 }
+                Console.Write("Q or Quit will exit the program");
                 input = Console.ReadLine();
             }
             return toReturn - 1;

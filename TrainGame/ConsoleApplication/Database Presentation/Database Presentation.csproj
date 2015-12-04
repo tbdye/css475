@@ -65,6 +65,7 @@
     <Compile Include="Entities\Product.cs" />
     <Compile Include="Entities\Siding.cs" />
     <Compile Include="Entities\Train.cs" />
+    <Compile Include="Entities\TupleNode.cs" />
     <Compile Include="Entities\Yard.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
