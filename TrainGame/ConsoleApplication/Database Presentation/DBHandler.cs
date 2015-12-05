@@ -31,10 +31,10 @@ namespace Database_Presentation
         }
 
         // Will need (needs to be updated to v 1.1)
-        public void UpdateTrainLocation(string module, int id)
+        public bool UpdateTrainLocation(string moduleName, int trainNumber)
         {
-            string cmd = String.Format("UPDATE Trains SET OnModule = '{0}', TimeUpdated = CURRENT_TIMESTAMP where TrainNumber = {1}", module, id);
-            ExecuteNonQuery(cmd);
+            string cmd = String.Format("UPDATE TrainLocations SET OnModule = '{0}', TimeUpdated = DEFAULT WHERE TrainNumber = {1}", moduleName, trainNumber);
+            return ExecuteNonQuery(cmd);
         }
 
         public IEnumerable<RollingStock> GetAllRollingStockForTrainDB(int trainNumber)
@@ -55,6 +55,58 @@ namespace Database_Presentation
                                         + "ON t.TrainNumber = tl.TrainNumber "
                                         + "ORDER BY t.TrainNumber");
             return ConvertToList<Train>(ExecuteReaderList(cmd, new Train())).ToList();
+        }
+
+        /// <summary>
+        /// returns false when there is a car with that ID,
+        /// and returns true when there is not a car with that ID
+        /// </summary>
+        /// <param name="CarID"></param>
+        /// <returns></returns>
+        public bool VerifyThatCarIDDoesNotExistDB(string CarID)
+        {
+            string cmd = String.Format("Select CarID From RollingStockCars WHERE CarID = '{0}';", CarID);
+            List<string> values = GetListSingleString(cmd, "CarID").ToList();
+            if (values != null && values.Count() > 0)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public IEnumerable<string> RunGenericQuery(string cmd, string key)
+        {
+            return GetListSingleString(cmd, key);
+        }
+
+        private IEnumerable<string> GetListSingleString(string cmd, string key)
+        {
+            var values = new List<string>();
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = cmd;
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                values.Add(reader[key].ToString());
+                            }
+                        }
+                    }
+                }
+            }
+            catch (MySql.Data.MySqlClient.MySqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+            return values;
         }
 
         public IEnumerable<Crew> GetCrewInfoDB()
@@ -150,6 +202,44 @@ namespace Database_Presentation
             }
             // Could not add the car to the train, so do not remove it from industry.
             return false;
+        }
+
+        public bool CreateAndAddCarToTrain(int trainNumber, string carID, string carType)
+        {
+            string cmd = string.Format("INSERT INTO RollingStockCars VALUES ('{0}', '{1}', DEFAULT);",
+                                            carID, carType);
+            var success = ExecuteNonQuery(cmd);
+            if (success)
+            {
+                cmd = string.Format("INSERT INTO ConsistedCars VALUES ({0}, '{1}', DEFAULT);",
+                                                trainNumber, carID);
+                success = ExecuteNonQuery(cmd);
+                if (!success)
+                {
+                    // Car doesnt need to be added to the game if it can't get immediatly get added to your car.
+                    cmd = string.Format("DELETE FROM RollingStockCars WHERE CarID = '{0}' AND CarType = '{1}'",
+                                            carID, carType);
+                    ExecuteNonQuery(cmd);
+                }
+                return success;
+            }
+            return false;
+        }
+
+        public bool RemoveCarFromTrain(int trainNumber, string CarID)
+        {
+            string cmd = string.Format("DELETE FROM ConsistedCars WHERE OnTrain = {0} AND UsingCar = '{1}';", trainNumber, CarID);
+            return ExecuteNonQuery(cmd);
+        }
+
+        public IEnumerable<Module> GetAllOtherModulesYourTrainIsNotOnDB(string module)
+        {
+            var cmd = String.Format("SELECT * FROM Modules as m "
+                                    + "INNER JOIN ModulesAvailable AS ma "
+                                    + "ON ma.ModuleName = m.ModuleName "
+                                    + "WHERE m.ModuleName <> '{0}'",
+                                    module);
+            return ConvertToList<Module>(ExecuteReaderList(cmd, new Module()));
         }
 
         #region Helper Methods

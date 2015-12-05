@@ -16,7 +16,11 @@ namespace Database_Presentation.Entities
 
         public override void SetUp(MySqlDataReader reader)
         {
-            throw new NotImplementedException();
+            this.Name = reader["ModuleName"].ToString();
+            this.Owner = reader["ModuleOwner"].ToString();
+            this.IsAvaliable = (bool)reader["IsAvailable"];
+            this.Shape = reader["ModuleShape"].ToString();
+            this.Description = reader["Description"].ToString();
         }
 
         public override DBEntity GetNew(MySqlDataReader reader)

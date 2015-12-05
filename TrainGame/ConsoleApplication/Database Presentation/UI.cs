@@ -88,7 +88,7 @@ namespace Database_Presentation
                         EndFunction();
                         break;
                 }
-
+                Input = Console.ReadLine();
                 Console.Clear();
                 PrintOptions();
             }
@@ -321,9 +321,31 @@ namespace Database_Presentation
         private void InsertACarIntoYourTrain()
         {
             Console.Clear();
-            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
-            Console.WriteLine("Plus its not even written yet, dummy");
+            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL MODIFY TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
 
+            Console.WriteLine("Please enter the CarID of the rolling stock car you want to create.");
+            Console.WriteLine("The ID is recomended to be in the form of 'AA' i.e. two characters");
+            Console.WriteLine("Also, please not that this will automatically add the car to your train.");
+            string CarID = Console.ReadLine();
+            while (!DB.VerifyThatCarIDDoesNotExistDB(CarID))
+            {
+                Console.WriteLine("That CarID is currently taken.\nPlease enter another");
+                CarID = Console.ReadLine();
+            }
+            Console.WriteLine("Now, we'll choose the CarType that your want.");
+            List<string> carTypes = GetPrintAllCarTypes().ToList();
+
+            Console.WriteLine("Please select the number next to the car type you want to add ");
+            var carTypeIndex = getInputAndReturnNumber(carTypes.Count());
+
+            var success = DB.CreateAndAddCarToTrain(curPlayer.Train.TrainNumber, CarID, carTypes[carTypeIndex]);
+            if (!success)
+            {
+                Console.WriteLine("Ther was an error, no cars were added to the game.\n Please try again.");
+                EndFunction();
+                return;
+            }
+            Console.WriteLine("The car {0} was added to your train! TrainNumber: {1}", CarID, curPlayer.Train.TrainNumber);
             EndFunction();
         }
 
@@ -335,7 +357,27 @@ namespace Database_Presentation
         {
             Console.Clear();
             Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
-            Console.WriteLine("Plus its not even written yet, dummy");
+            Console.WriteLine("This will remove a car from your train and put it back into the pool of cars.");
+            Console.WriteLine("Please note that this function will not put the car in any useful place, but will still remove the car from your train.\n");
+            List<RollingStock> rsValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
+            if (rsValues == null || rsValues.Count() == 0)
+            {
+                EndFunctionError();
+                return;
+            }
+            var rsIndex = getInputAndReturnNumber(rsValues.Count());
+
+            Console.WriteLine("Removing car {0} from your train", rsValues[rsIndex].CarID);
+
+            var success = DB.RemoveCarFromTrain(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID);
+
+            if (!success)
+            {
+                Console.WriteLine("Thre was an error, no cars were removed from your train\nPlease try again.");
+                EndFunction();
+                return;
+            }
+            Console.WriteLine("The car {0} was removed from your train! Train Number: {1}", rsValues[rsIndex].CarID, curPlayer.Train.TrainNumber);
             EndFunction();
         }
 
@@ -346,8 +388,27 @@ namespace Database_Presentation
         private void MoveYourTrainFromOneModuleToAnother()
         {
             Console.Clear();
+            var previousModuleName = curPlayer.Train.Module;
             Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
-            Console.WriteLine("Plus its not even written yet, dummy");
+            Console.WriteLine("Please Select the module that you would like to move your train to");
+            Console.WriteLine("\nCurrent on module {0}\n", previousModuleName);
+            List<Module> moduleValues = GetPrintAllOtherModulesAwayFromTrain(curPlayer.Train.Module).ToList();
+            Console.WriteLine("\nPlease select the number next to the module you would like to move your train to. ");
+            var moduleIndex = getInputAndReturnNumber(moduleValues.Count());
+            while (!moduleValues[moduleIndex].IsAvaliable)
+            {
+                Console.WriteLine("The industry that you chose: {0} is currently unavalible. Please select another.");
+                moduleIndex = getInputAndReturnNumber(moduleValues.Count());
+            }
+            var success = DB.UpdateTrainLocation(moduleValues[moduleIndex].Name, curPlayer.Train.TrainNumber);
+            if (!success)
+            {
+                Console.WriteLine("There was an error moving your train to the module {0}", moduleValues[moduleIndex].Name);
+                Console.WriteLine("Your train was not moved. Please try again.");
+                EndFunction();
+                return;
+            }
+            Console.WriteLine("Your train #{0}, was moved from Module {1} to the Module {2}.", curPlayer.Train.TrainNumber, previousModuleName, curPlayer.Train.Module);
             EndFunction();
         }
 
@@ -390,6 +451,19 @@ namespace Database_Presentation
                 return null;
             PrintIndustries(industryValues, false);
             return industryValues;
+        }
+
+        private IEnumerable<string> GetPrintAllCarTypes()
+        {
+            IEnumerable<string> values = DB.RunGenericQuery("Select CarType From RollingStockCars Group By CarType;", "CarType");
+            if (values == null || values.Count() == 0)
+            {
+                return null;
+            }
+            Console.WriteLine("\tCarType");
+            Console.WriteLine("--------------------------------");
+            PrintListOfStringWithCount(values);
+            return values;
         }
 
         private IEnumerable<RollingStock> GetPrintRollingStockForIndustry(string IndustryName)
@@ -624,6 +698,17 @@ namespace Database_Presentation
             Console.WriteLine();
         }
 
+        private void PrintModules(IEnumerable<Module> values)
+        {
+            var count = 0;
+            Console.WriteLine("\t{0, -15}\t{1}", "Module Name", "Avalible");
+            Console.WriteLine("\t------------------------------------------");
+            foreach (var value in values)
+            {
+                Console.WriteLine("{0})\t{1, -15}\t{2, -15}", ++count, value.Name, value.IsAvaliable);
+            }
+        }
+
         private void PrintTrains(IEnumerable<Train> values, bool verbose)
         {
             if (verbose)
@@ -659,6 +744,15 @@ namespace Database_Presentation
             }
         }
 
+        private void PrintListOfStringWithCount(IEnumerable<string> values)
+        {
+            var count = 0;
+            foreach (var value in values)
+            {
+                Console.WriteLine("{0})\t{1}", ++count, value);
+            }
+        }
+
         private IEnumerable<Yard> GetPrintAllYardInformationForCurrentTrainLocation()
         {
             Console.WriteLine("Retrieving all Yard Information for Train #{0}...", curPlayer.Train.TrainNumber);
@@ -669,6 +763,18 @@ namespace Database_Presentation
             }
             PrintYards(yards);
             return yards;
+        }
+
+        private IEnumerable<Module> GetPrintAllOtherModulesAwayFromTrain(string module)
+        {
+            Console.WriteLine("Retrieving every other module that your train is not currently on...");
+            IEnumerable<Module> modules = DB.GetAllOtherModulesYourTrainIsNotOnDB(curPlayer.Train.Module);
+            if (modules == null || module.Count() == 0)
+            {
+                return null;
+            }
+            PrintModules(modules);
+            return modules;
         }
 
         /// <summary>
