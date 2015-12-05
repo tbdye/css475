@@ -88,9 +88,9 @@ namespace Database_Presentation
                         EndFunction();
                         break;
                 }
-                Input = Console.ReadLine();
                 Console.Clear();
                 PrintOptions();
+                Input = Console.ReadLine();
             }
         }
 
@@ -130,7 +130,8 @@ namespace Database_Presentation
             List<Crew> crew = GetPrintAllCrewInformation().ToList();
             if (crew == null)
             {
-                EndFunctionError();
+                Console.WriteLine("There was an error retriving your information");
+                EndFunction();
                 return null;
             }
 
@@ -141,7 +142,8 @@ namespace Database_Presentation
             List<Train> trains = GetPrintAllTrainInformation(false).ToList();
             if (trains == null)
             {
-                EndFunctionError();
+                Console.WriteLine("There was an error retriving your information");
+                EndFunction();
                 return new Tuple<Crew, Train>(crew[crewIndex], null);
             }
 
@@ -180,8 +182,8 @@ namespace Database_Presentation
             List<Train> trains = GetPrintAllTrainInformation(false).ToList();
             if (trains == null)
             {
-                Console.WriteLine("There was an error retrieving the Train Infomration");
-                EndFunctionError();
+                Console.WriteLine("There was an error retriving your information");
+                EndFunction();
                 return;
             }
             Console.Write("Please select the train that you want to show rolling stock for ");
@@ -216,17 +218,17 @@ namespace Database_Presentation
             if (industryValues == null)
             {
                 Console.WriteLine("There was an error gathering the current industry information...");
-                EndFunctionError();
+                EndFunction();
                 return;
             }
             Console.WriteLine("Please select the number coresponding to the industry you want ");
             var industryIndex = getInputAndReturnNumber(industryValues.Count());
             Console.WriteLine("Getting all rolling stock at industry {0}\n", industryValues[industryIndex].IndustryName);
             List<RollingStock> stockValues = GetPrintRollingStockForIndustry(industryValues[industryIndex].IndustryName).ToList();
-            if (stockValues == null)
+            if (stockValues == null || stockValues.Count() == 0)
             {
                 Console.WriteLine("There was an error gathering the current rolling stock information...");
-                EndFunctionError();
+                EndFunction();
                 return;
             }
             EndFunction();
@@ -256,7 +258,7 @@ namespace Database_Presentation
             else
             {
                 Console.WriteLine("There was an issue dropping the car {0} at the industry {1}. No cars were removed from your train.", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
-                EndFunctionError();
+                EndFunction();
                 return;
             }
 
@@ -283,7 +285,8 @@ namespace Database_Presentation
             }
             if (industriesOnModule == null)
             {
-                EndFunctionError();
+                Console.WriteLine("There was an weeoe retriving your information.");
+                EndFunction();
                 return;
             }
             Console.Write("Please select the nuber next to the industry that holds the the rolling stock you want ");
@@ -298,7 +301,7 @@ namespace Database_Presentation
             if (rsValues == null && rsValues.Count() == 0)
             {
                 Console.WriteLine("There was an issue retrieving the rolling stock values from the industry {0}", industriesOnModule[industryIndex].IndustryName);
-                EndFunctionError();
+                EndFunction();
                 return;
             }
             Console.Write("Now, please select the rolling stock that you want to pick up from that industry ");
@@ -307,7 +310,7 @@ namespace Database_Presentation
             if (!success)
             {
                 Console.WriteLine("There was an issue picking up the car {0} at the industry {1}. No cars were added from your train or removed from the industry", rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
-                EndFunctionError();
+                EndFunction();
                 return;
             }
             Console.WriteLine("You successfully removed the Car: {0} from the Industry {1} and added it to your train", rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
@@ -362,7 +365,8 @@ namespace Database_Presentation
             List<RollingStock> rsValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
             if (rsValues == null || rsValues.Count() == 0)
             {
-                EndFunctionError();
+                Console.WriteLine("There was an error retriving your information.");
+                EndFunction();
                 return;
             }
             var rsIndex = getInputAndReturnNumber(rsValues.Count());
@@ -837,13 +841,6 @@ namespace Database_Presentation
 
         private void EndFunction()
         {
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
-        }
-
-        private void EndFunctionError()
-        {
-            Console.WriteLine("There was an error retrieving the results");
             Console.WriteLine("Press any key to continue...");
             Console.ReadKey();
         }
