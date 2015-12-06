@@ -44,14 +44,7 @@ INSERT INTO TrainCrews VALUES (@playerTrain, @player, DEFAULT);
 SELECT 
     *
 FROM
-    Modules
-WHERE
-    ModuleName IN (SELECT 
-            ModuleName
-        FROM
-            ModulesAvailable
-        WHERE
-            IsAvailable = TRUE);
+    ViewActiveModules;
 
 #Display User Train:
 #The user selects a train to view.
@@ -61,20 +54,11 @@ WHERE
 #	movement was.
 SET @playerTrain = 4;
 SELECT 
-    t.TrainNumber,
-    t.LeadPower,
-    t.DCCAddress,
-    c.WithCrew,
-    l.onModule,
-    l.TimeUpdated
+    *
 FROM
-    Trains t,
-    TrainCrews c,
-    TrainLocations l
+    ViewUserTrain
 WHERE
-    t.TrainNumber = c.OnTrain
-        AND t.TrainNumber = l.TrainNumber
-        AND t.TrainNumber = @playerTrain;
+    TrainNumber = @playerTrain;
 		
 #Display Train Consist:
 #The user selects a train to view waybill information.
@@ -83,96 +67,11 @@ WHERE
 #	destination.
 SET @playerTrain = 4;
 SELECT 
-    r.CarID,
-    r.CarType,
-    s.ProductType,
-    (CASE
-        WHEN
-            s.ShipmentID IN (SELECT 
-                    ShipmentID
-                FROM
-                    ShipmentsPickedUp
-                WHERE
-                    ShipmentID = s.ShipmentID)
-                AND s.ShipmentID IN (SELECT 
-                    ShipmentID
-                FROM
-                    ShipmentsDelivered
-                WHERE
-                    ShipmentID = s.ShipmentID)
-        THEN
-            (SELECT 
-                    @nextDestination:=(SELECT 
-                                ReturnToYard
-                            FROM
-                                Waybills
-                            WHERE
-                                UsingShipmentID = s.ShipmentID)
-                )
-        WHEN
-            s.ShipmentID NOT IN (SELECT 
-                    ShipmentID
-                FROM
-                    ShipmentsPickedUp
-                WHERE
-                    ShipmentID = s.ShipmentID)
-        THEN
-            (SELECT 
-                    @nextDestination:=(SELECT 
-                                FromIndustry
-                            FROM
-                                Shipments
-                            WHERE
-                                ShipmentID = s.ShipmentID)
-                )
-        WHEN
-            s.ShipmentID IN (SELECT 
-                    ShipmentID
-                FROM
-                    ShipmentsPickedUp
-                WHERE
-                    ShipmentID = s.ShipmentID)
-        THEN
-            (SELECT 
-                    @nextDestination:=(SELECT 
-                                ToIndustry
-                            FROM
-                                Shipments
-                            WHERE
-                                ShipmentID = s.ShipmentID)
-                )
-    END) AS NextDestination,
-    IF(@nextDestination IN (SELECT 
-                IndustryName
-            FROM
-                Industries
-            WHERE
-                IndustryName = @nextDestination),
-        (SELECT 
-                OnModule
-            FROM
-                Industries
-            WHERE
-                IndustryName = @nextDestination),
-        (SELECT 
-                OnModule
-            FROM
-                Yards
-            WHERE
-                YardName = @nextDestination)) AS Module
+    *
 FROM
-    RollingStockCars r,
-    Waybills w,
-    Shipments s
+    ViewTrainConsist
 WHERE
-    r.CarID = w.OnCar
-        AND w.UsingShipmentID = s.ShipmentID
-        AND OnCar IN (SELECT 
-            UsingCar
-        FROM
-            ConsistedCars
-        WHERE
-            OnTrain = @playerTrain);
+    OnTrain = @playerTrain;
 			
 #Check-In at Module (Move Train)
 #The user reports that his or her train has arrived or is doing work at a module.
@@ -188,15 +87,9 @@ SET @playerModule = '180 Farms';
 SELECT 
     *
 FROM
-    Industries
+    ViewModule
 WHERE
-    IndustryName IN (SELECT 
-            IndustryName
-        FROM
-            IndustriesAvailable
-        WHERE
-            IsAvailable = TRUE)
-        AND OnModule = @playerModule;
+    OnModule = @playerModule;
 		
 #Load Rolling Stock (formerly Deliver Rolling Stock)
 #The user reports that his or her train is servicing an industry and indicates
@@ -215,13 +108,11 @@ CALL LoadRollingStock(@playerIndustry, @playerCar);
 #The system displays, for each car:  car ID, car type, and arrival time.
 SET @playerIndustry = 'Half Circle Farms';
 SELECT 
-    c.CarID, c.CarType, i.AtIndustry, i.TimeArrived
+    *
 FROM
-    RollingStockCars c
-        JOIN
-    RollingStockAtIndustries i ON c.CarID = i.CarID
+    ViewRollingStockAtIndustry
 WHERE
-    i.AtIndustry = @playerIndustry;
+    AtIndustry = @playerIndustry;
 
 #Receive Rolling Stock:
 #The user selects a car servicing an industry to add to a train.
