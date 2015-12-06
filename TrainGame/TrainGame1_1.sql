@@ -696,29 +696,110 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
-#StoredProcedures
+#Views
 
-/*#GetNextDestination
-DROP PROCEDURE IF EXISTS GetNextDestination;
-DELIMITER $$
-CREATE PROCEDURE GetNextDestination (
-	IN ShippingOrder INT,
-    OUT Destination VARCHAR(255))
-BEGIN
-	CASE
-		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
-			AND ShippingOrder IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = ShippingOrder)
-            THEN
-				SET Destination = (SELECT ReturnToYard FROM Waybills WHERE UsingShipmentID = ShippingOrder);
-		WHEN ShippingOrder NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
-			THEN
-				SET Destination = (SELECT FromIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
-		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
-			THEN
-				SET Destination = (SELECT ToIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
-    END CASE;
-END$$
-DELIMITER ;*/
+#ViewActiveModules
+DROP VIEW IF EXISTS ViewActiveModules;
+CREATE VIEW ViewActiveModules AS
+	SELECT 
+		*
+	FROM
+		Modules
+	WHERE
+		ModuleName IN (SELECT 
+				ModuleName
+			FROM
+				ModulesAvailable
+			WHERE
+				IsAvailable = TRUE);
+
+#ViewUserTrain
+DROP VIEW IF EXISTS ViewUserTrain;
+CREATE VIEW ViewUserTrain AS
+    SELECT 
+        t.TrainNumber,
+        t.LeadPower,
+        t.DCCAddress,
+        c.WithCrew,
+        l.onModule,
+        l.TimeUpdated
+    FROM
+        Trains t,
+        TrainCrews c,
+        TrainLocations l
+    WHERE
+        t.TrainNumber = c.OnTrain
+            AND t.TrainNumber = l.TrainNumber;
+
+#ViewTrainConsist
+DROP VIEW IF EXISTS ViewTrainConsist;
+CREATE VIEW ViewTrainConsist AS
+    SELECT 
+        c.OnTrain,
+        r.CarID,
+        r.CarType,
+        s.ProductType,
+        GETNEXTDESTINATION(s.ShipmentID) AS NextDestination,
+        IF(GETNEXTDESTINATION(s.ShipmentID) IN (SELECT 
+                    IndustryName
+                FROM
+                    Industries
+                WHERE
+                    IndustryName = GETNEXTDESTINATION(s.ShipmentID)),
+            (SELECT 
+                    OnModule
+                FROM
+                    Industries
+                WHERE
+                    IndustryName = GETNEXTDESTINATION(s.ShipmentID)),
+            (SELECT 
+                    OnModule
+                FROM
+                    Yards
+                WHERE
+                    YardName = GETNEXTDESTINATION(s.ShipmentID))) AS Module
+    FROM
+        ConsistedCars c,
+        RollingStockCars r,
+        Waybills w,
+        Shipments s
+    WHERE
+        c.UsingCar = r.CarID
+            AND r.CarID = w.OnCar
+            AND w.UsingShipmentID = s.ShipmentID
+            AND OnCar IN (SELECT 
+                UsingCar
+            FROM
+                ConsistedCars);
+
+#ViewModule
+DROP VIEW IF EXISTS ViewModule;
+CREATE VIEW ViewModule AS
+	SELECT 
+		*
+	FROM
+		Industries
+	WHERE
+		IndustryName IN (SELECT 
+				IndustryName
+			FROM
+				IndustriesAvailable
+			WHERE
+				IsAvailable = TRUE);
+
+#ViewRollingStockAtIndustry
+DROP VIEW IF EXISTS ViewRollingStockAtIndustry;
+CREATE VIEW ViewRollingStockAtIndustry AS
+    SELECT 
+        c.CarID, c.CarType, i.AtIndustry, i.TimeArrived
+    FROM
+        RollingStockCars c
+            JOIN
+        RollingStockAtIndustries i ON c.CarID = i.CarID;
+
+#
+
+#StoredProcedures
 
 #LoadRollingStock
 DROP PROCEDURE IF EXISTS LoadRollingStock;
@@ -769,6 +850,33 @@ BEGIN
         SET MESSAGE_TEXT = 'Cannot unload this rolling stock car at this industry.';
 	END IF;
 END $$
+DELIMITER ;
+
+#Functions
+
+#GetNextDestination
+DROP FUNCTION IF EXISTS GetNextDestination;
+DELIMITER $$
+CREATE FUNCTION GetNextDestination(
+	ShippingOrder INT) 
+RETURNS VARCHAR(255)
+DETERMINISTIC
+BEGIN
+	DECLARE Destination VARCHAR(255);
+    CASE
+		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			AND ShippingOrder IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = ShippingOrder)
+            THEN
+				SET Destination = (SELECT ReturnToYard FROM Waybills WHERE UsingShipmentID = ShippingOrder);
+		WHEN ShippingOrder NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			THEN
+				SET Destination = (SELECT FromIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
+		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			THEN
+				SET Destination = (SELECT ToIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
+    END CASE;
+    RETURN Destination;
+END$$
 DELIMITER ;
 
 #This test data creates a small model railroad layout, train cars, and players.
