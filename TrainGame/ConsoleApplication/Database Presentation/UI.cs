@@ -20,9 +20,7 @@ namespace Database_Presentation
             DB = new DBHandler();
             curPlayer = new Player();
             DrawTrain();
-            //SetUpPlayer(); // Hard Coding this, just cause its annoying...
-            curPlayer.Name = "Brett"; // Remove these
-            curPlayer.Train = DB.GetTrain(1); // Remove these
+            SetUpPlayer();
         }
 
         #endregion Set up methods
@@ -44,42 +42,38 @@ namespace Database_Presentation
                         break;
 
                     case 2:
-                        SelectCrewAndSelectTrainFromCrew();
-                        break;
-
-                    case 3:
                         DisplayAllTrainInformation();
                         break;
 
-                    case 4:
+                    case 3:
                         DisplayRollingStockFromASelectedTrain();
                         break;
 
-                    case 5:
+                    case 4:
                         DisplayIndustriesAndYardsOnTheCurrentModule();
                         break;
 
-                    case 6:
+                    case 5:
                         DisplayAllTrainsAtACertainIndustry();
                         break;
 
-                    case 7:
+                    case 6:
                         DropOffRollingStockAtSpecifiedIndustryOnCurrentModule();
                         break;
 
-                    case 8:
+                    case 7:
                         PickUpRollingStockAtAnIndustryOnTheCurrentModule();
                         break;
 
-                    case 9:
+                    case 8:
                         InsertACarIntoYourTrain();
                         break;
 
-                    case 10:
+                    case 9:
                         RemoveACarFromyourTrain();
                         break;
 
-                    case 11:
+                    case 10:
                         MoveYourTrainFromOneModuleToAnother();
                         break;
 
@@ -100,14 +94,34 @@ namespace Database_Presentation
 
         private void ReportTrainInformationAndCrews()
         {
-            Console.Clear();
+            StartMethod();
             Console.WriteLine("Trains");
             Console.WriteLine("--------------------------------------------");
-            GetPrintAllTrainInformation(false);
+            try
+            {
+                GetPrintAllTrainInformation(false);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             Console.WriteLine("\n--------------------------------------------");
             Console.WriteLine("Crew");
             Console.WriteLine("--------------------------------------------");
-            GetPrintAllCrewInformation();
+            try
+            {
+                GetPrintAllCrewInformation();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             Console.WriteLine();
             EndFunction();
         }
@@ -116,70 +130,44 @@ namespace Database_Presentation
 
         #region Option 2
 
-        /// <summary>
-        /// Presents all the crew to the user as well as all of the trains,
-        /// and allows the user to choose which one they want.
-        /// Note: Currently the return from this function is being disposed of,
-        /// but with the Tuple implementation, it would not be hard to correctly consume.
-        /// </summary>
-        /// <returns>A tuple containing the selected crew and selected train</returns>
-        private Tuple<Crew, Train> SelectCrewAndSelectTrainFromCrew()
+        private void DisplayAllTrainInformation()
         {
-            Console.Clear();
-            Console.WriteLine("Displaying all crew information...\n\n");
-            List<Crew> crew = GetPrintAllCrewInformation().ToList();
-            if (crew == null)
+            StartMethod();
+            Console.WriteLine("Displaying All Train Information...\n");
+            try
             {
-                Console.WriteLine("There was an error retriving your information");
-                EndFunction();
-                return null;
+                GetPrintAllTrainInformation(true);
             }
-
-            Console.Write("Please select the Crew Number you want to retrieve ");
-
-            var crewIndex = getInputAndReturnNumber(crew.Count());
-
-            List<Train> trains = GetPrintAllTrainInformation(false).ToList();
-            if (trains == null)
+            catch (DBException db)
             {
-                Console.WriteLine("There was an error retriving your information");
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
                 EndFunction();
-                return new Tuple<Crew, Train>(crew[crewIndex], null);
+                return;
             }
-
-            Console.Write("Please select the number next to the train you want to retrieve ");
-            var trainIndex = getInputAndReturnNumber(trains.Count());
-
-            var toReturn = new Tuple<Crew, Train>(crew[crewIndex], trains[trainIndex]);
-
-            Console.WriteLine("Crew Person: {0} and Train #{1}, retrieved", toReturn.Item1.CrewName, toReturn.Item2.TrainNumber);
-
             EndFunction();
-
-            return toReturn;
         }
 
         #endregion Option 2
 
         #region Option 3
 
-        private void DisplayAllTrainInformation()
-        {
-            Console.Clear();
-            Console.WriteLine("Displaying All Train Information...\n");
-            GetPrintAllTrainInformation(true);
-            EndFunction();
-        }
-
-        #endregion Option 3
-
-        #region Option 4
-
         private void DisplayRollingStockFromASelectedTrain()
         {
-            Console.Clear();
+            StartMethod();
             Console.WriteLine("Displaing All train information...\n");
-            List<Train> trains = GetPrintAllTrainInformation(false).ToList();
+            List<Train> trains = null;
+            try
+            {
+                trains = GetPrintAllTrainInformation(false).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (trains == null)
             {
                 Console.WriteLine("There was an error retriving your information");
@@ -188,7 +176,51 @@ namespace Database_Presentation
             }
             Console.Write("Please select the train that you want to show rolling stock for ");
             var trainIndex = getInputAndReturnNumber(trains.Count());
-            DisplayRollingStockForSpecifiedTrain(trains[trainIndex].TrainNumber);
+            try
+            {
+                DisplayRollingStockForSpecifiedTrain(trains[trainIndex].TrainNumber);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
+            EndFunction();
+        }
+
+        #endregion Option 3
+
+        #region Option 4
+
+        private void DisplayIndustriesAndYardsOnTheCurrentModule()
+        {
+            StartMethod();
+            Console.WriteLine("Displaying Industries and Yards of the module that your Train #{0} is currently at\n", curPlayer.Train.TrainNumber);
+            try
+            {
+                GetPrintAllIndustryInformationForCurrentTrain();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
+            Console.WriteLine("Yards");
+            try
+            {
+                GetPrintAllYardInformationForCurrentTrainLocation();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             EndFunction();
         }
 
@@ -196,13 +228,49 @@ namespace Database_Presentation
 
         #region Option 5
 
-        private void DisplayIndustriesAndYardsOnTheCurrentModule()
+        private void DisplayAllTrainsAtACertainIndustry()
         {
-            Console.Clear();
-            Console.WriteLine("Displaying Industries and Yards of the module that your Train #{0} is currently at\n", curPlayer.Train.TrainNumber);
-            GetPrintAllIndustryInformationForCurrentTrain();
-            Console.WriteLine("Yards");
-            GetPrintAllYardInformationForCurrentTrainLocation();
+            StartMethod();
+            Console.WriteLine("Getting all Industries...\n");
+            List<Industry> industryValues = null;
+            try
+            {
+                industryValues = GetPrintAllIndustryInformation().ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
+            if (industryValues == null || industryValues.Count() == 0)
+            {
+                Console.WriteLine("There was an error gathering the current industry information...");
+                EndFunction();
+                return;
+            }
+            Console.WriteLine("\nPlease select the number coresponding to the industry you want ");
+            var industryIndex = getInputAndReturnNumber(industryValues.Count());
+            Console.WriteLine("Getting all rolling stock at industry {0}\n", industryValues[industryIndex].IndustryName);
+            List<RollingStock> stockValues = null;
+            try
+            {
+                stockValues = GetPrintRollingStockForIndustry(industryValues[industryIndex].IndustryName).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
+            if (stockValues == null || stockValues.Count() == 0)
+            {
+                Console.WriteLine("\tThere were no results returned. ");
+                EndFunction();
+                return;
+            }
             EndFunction();
         }
 
@@ -210,47 +278,51 @@ namespace Database_Presentation
 
         #region Option 6
 
-        private void DisplayAllTrainsAtACertainIndustry()
-        {
-            Console.Clear();
-            Console.WriteLine("Getting all Industries...\n");
-            List<Industry> industryValues = GetPrintAllIndustryInformation().ToList();
-            if (industryValues == null)
-            {
-                Console.WriteLine("There was an error gathering the current industry information...");
-                EndFunction();
-                return;
-            }
-            Console.WriteLine("Please select the number coresponding to the industry you want ");
-            var industryIndex = getInputAndReturnNumber(industryValues.Count());
-            Console.WriteLine("Getting all rolling stock at industry {0}\n", industryValues[industryIndex].IndustryName);
-            List<RollingStock> stockValues = GetPrintRollingStockForIndustry(industryValues[industryIndex].IndustryName).ToList();
-            if (stockValues == null || stockValues.Count() == 0)
-            {
-                Console.WriteLine("There was an error gathering the current rolling stock information...");
-                EndFunction();
-                return;
-            }
-            EndFunction();
-        }
-
-        #endregion Option 6
-
-        #region Option 7
-
         private void DropOffRollingStockAtSpecifiedIndustryOnCurrentModule()
         {
-            Console.Clear();
-            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            StartMethod();
             Console.WriteLine("Displaying all of the Rolling Stock attached to your train...\n");
-            List<RollingStock> rollingStockValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
+            List<RollingStock> rollingStockValues = null;
+            try
+            {
+                rollingStockValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             Console.Write("\nPlease select the number next to the rolling stock you want to drop off ");
             var rollingStockIndex = getInputAndReturnNumber(rollingStockValues.Count());
             Console.WriteLine("Displaying all of the industries attached to your current module...\n");
-            List<Industry> industryValues = GetPrintAllIndustriesOnModule(curPlayer.Train.Module, false).ToList();
+            List<Industry> industryValues = null;
+            try
+            {
+                industryValues = GetPrintAllIndustriesOnModule(curPlayer.Train.Module, false).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             Console.Write("\nPlease select the number next to the industry you want to drop off at ");
             var industryIndex = getInputAndReturnNumber(industryValues.Count());
-            var success = DB.DropOffCarAtLocationDB(curPlayer.Train.TrainNumber, rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+            bool success;
+            try
+            {
+                success = DB.DropOffCarAtLocationDB(curPlayer.Train.TrainNumber, rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (success)
             {
                 Console.WriteLine("The car {0} was successfully dropped off at the industry {1} and removed from your train", rollingStockValues[rollingStockIndex].CarID, industryValues[industryIndex].IndustryName);
@@ -265,18 +337,28 @@ namespace Database_Presentation
             EndFunction();
         }
 
-        #endregion Option 7
+        #endregion Option 6
 
-        #region Option 8
+        #region Option 7
 
         private void PickUpRollingStockAtAnIndustryOnTheCurrentModule()
         {
-            Console.Clear();
-            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            StartMethod();
             Console.WriteLine("Displaying avaliable rolling stock to pickup at current module...\n");
             IEnumerable<TupleNode> allValues = new List<TupleNode>();
             bool hasRollingStock = false;
-            List<Industry> industriesOnModule = GetPrintAllIndustriesOnModule(out allValues, out hasRollingStock).ToList();
+            List<Industry> industriesOnModule = new List<Industry>();
+            try
+            {
+                industriesOnModule = GetPrintAllIndustriesOnModule(out allValues, out hasRollingStock).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (!hasRollingStock)
             {
                 Console.WriteLine("The module that you are currently at has no rolling to pick up. \nPlease move to another module to add to your train.");
@@ -297,7 +379,18 @@ namespace Database_Presentation
                 industryIndex = getInputAndReturnNumber(industriesOnModule.Count());
             }
             Console.WriteLine("Re-Displaying all rolling stock from the selected industry {0}", industriesOnModule[industryIndex].IndustryName);
-            List<RollingStock> rsValues = GetPrintRollingStockAtindustry(industriesOnModule[industryIndex].IndustryName).ToList();
+            List<RollingStock> rsValues = new List<RollingStock>();
+            try
+            {
+                rsValues = GetPrintRollingStockAtindustry(industriesOnModule[industryIndex].IndustryName).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (rsValues == null && rsValues.Count() == 0)
             {
                 Console.WriteLine("There was an issue retrieving the rolling stock values from the industry {0}", industriesOnModule[industryIndex].IndustryName);
@@ -306,7 +399,18 @@ namespace Database_Presentation
             }
             Console.Write("Now, please select the rolling stock that you want to pick up from that industry ");
             var rsIndex = getInputAndReturnNumber(rsValues.Count());
-            var success = DB.AddCarToTrainDB(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
+            bool success = false;
+            try
+            {
+                success = DB.AddCarToTrainDB(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (!success)
             {
                 Console.WriteLine("There was an issue picking up the car {0} at the industry {1}. No cars were added from your train or removed from the industry", rsValues[rsIndex].CarID, industriesOnModule[industryIndex].IndustryName);
@@ -317,31 +421,61 @@ namespace Database_Presentation
             EndFunction();
         }
 
-        #endregion Option 8
+        #endregion Option 7
 
-        #region Option 9
+        #region Option 8
 
         private void InsertACarIntoYourTrain()
         {
-            Console.Clear();
-            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL MODIFY TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
-
+            StartMethod();
             Console.WriteLine("Please enter the CarID of the rolling stock car you want to create.");
             Console.WriteLine("The ID is recomended to be in the form of 'AA' i.e. two characters");
             Console.WriteLine("Also, please not that this will automatically add the car to your train.");
             string CarID = Console.ReadLine();
-            while (!DB.VerifyThatCarIDDoesNotExistDB(CarID))
+            try
             {
-                Console.WriteLine("That CarID is currently taken.\nPlease enter another");
-                CarID = Console.ReadLine();
+                while (!DB.VerifyThatCarIDDoesNotExistDB(CarID))
+                {
+                    Console.WriteLine("That CarID is currently taken.\nPlease enter another");
+                    CarID = Console.ReadLine();
+                }
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
             }
             Console.WriteLine("Now, we'll choose the CarType that your want.");
-            List<string> carTypes = GetPrintAllCarTypes().ToList();
+            List<string> carTypes = null;
+            try
+            {
+                carTypes = GetPrintAllCarTypes().ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
 
             Console.WriteLine("Please select the number next to the car type you want to add ");
             var carTypeIndex = getInputAndReturnNumber(carTypes.Count());
 
-            var success = DB.CreateAndAddCarToTrain(curPlayer.Train.TrainNumber, CarID, carTypes[carTypeIndex]);
+            bool success = false;
+            try
+            {
+                success = DB.CreateAndAddCarToTrain(curPlayer.Train.TrainNumber, CarID, carTypes[carTypeIndex]);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (!success)
             {
                 Console.WriteLine("Ther was an error, no cars were added to the game.\n Please try again.");
@@ -352,17 +486,27 @@ namespace Database_Presentation
             EndFunction();
         }
 
-        #endregion Option 9
+        #endregion Option 8
 
-        #region Option 10
+        #region Option 9
 
         private void RemoveACarFromyourTrain()
         {
-            Console.Clear();
-            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
+            StartMethod();
             Console.WriteLine("This will remove a car from your train and put it back into the pool of cars.");
             Console.WriteLine("Please note that this function will not put the car in any useful place, but will still remove the car from your train.\n");
-            List<RollingStock> rsValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
+            List<RollingStock> rsValues = null;
+            try
+            {
+                rsValues = GetPrintRollingStockForTrain(curPlayer.Train.TrainNumber).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (rsValues == null || rsValues.Count() == 0)
             {
                 Console.WriteLine("There was an error retriving your information.");
@@ -373,8 +517,18 @@ namespace Database_Presentation
 
             Console.WriteLine("Removing car {0} from your train", rsValues[rsIndex].CarID);
 
-            var success = DB.RemoveCarFromTrain(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID);
-
+            bool success = false;
+            try
+            {
+                success = DB.RemoveCarFromTrain(curPlayer.Train.TrainNumber, rsValues[rsIndex].CarID);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (!success)
             {
                 Console.WriteLine("Thre was an error, no cars were removed from your train\nPlease try again.");
@@ -385,18 +539,28 @@ namespace Database_Presentation
             EndFunction();
         }
 
-        #endregion Option 10
+        #endregion Option 9
 
-        #region Option 11
+        #region Option 10
 
         private void MoveYourTrainFromOneModuleToAnother()
         {
-            Console.Clear();
+            StartMethod();
             var previousModuleName = curPlayer.Train.Module;
-            Console.WriteLine("DEV WARNING!!!\nTHIS FUNCTION WILL REMOVE TEST DATA\nBE SURE TO PUT IT BACK\n....Or just like, quit this shit.....\n\n\n\n\n.......BRETT\n\n");
             Console.WriteLine("Please Select the module that you would like to move your train to");
             Console.WriteLine("\nCurrent on module {0}\n", previousModuleName);
-            List<Module> moduleValues = GetPrintAllOtherModulesAwayFromTrain(curPlayer.Train.Module).ToList();
+            List<Module> moduleValues = null;
+            try
+            {
+                moduleValues = GetPrintAllOtherModulesAwayFromTrain(curPlayer.Train.Module).ToList();
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             Console.WriteLine("\nPlease select the number next to the module you would like to move your train to. ");
             var moduleIndex = getInputAndReturnNumber(moduleValues.Count());
             while (!moduleValues[moduleIndex].IsAvaliable)
@@ -404,7 +568,18 @@ namespace Database_Presentation
                 Console.WriteLine("The industry that you chose: {0} is currently unavalible. Please select another.");
                 moduleIndex = getInputAndReturnNumber(moduleValues.Count());
             }
-            var success = DB.UpdateTrainLocation(moduleValues[moduleIndex].Name, curPlayer.Train.TrainNumber);
+            bool success = false;
+            try
+            {
+                success = DB.UpdateTrainLocation(moduleValues[moduleIndex].Name, curPlayer.Train.TrainNumber);
+            }
+            catch (DBException db)
+            {
+                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine(db.Message);
+                EndFunction();
+                return;
+            }
             if (!success)
             {
                 Console.WriteLine("There was an error moving your train to the module {0}", moduleValues[moduleIndex].Name);
@@ -416,7 +591,7 @@ namespace Database_Presentation
             EndFunction();
         }
 
-        #endregion Option 11
+        #endregion Option 10
 
         #region HelperMethods
 
@@ -473,17 +648,6 @@ namespace Database_Presentation
         private IEnumerable<RollingStock> GetPrintRollingStockForIndustry(string IndustryName)
         {
             IEnumerable<RollingStock> values = DB.GetRollingStockValuesByIndustryNameDB(IndustryName);
-            if (values == null)
-            {
-                return null;
-            }
-            PrintRollingStock(values);
-            return values;
-        }
-
-        private IEnumerable<RollingStock> GetPrintRollingStockForModule(string ModuleName)
-        {
-            IEnumerable<RollingStock> values = DB.GetAllRollingStockForModuleDB(ModuleName);
             if (values == null)
             {
                 return null;
@@ -789,24 +953,23 @@ namespace Database_Presentation
             DrawTrain();
             Console.WriteLine("\nTrain Game Main Menu");
             Console.WriteLine("_________________________________________________________________________________");
-            Console.WriteLine("\t\tNumber\t\tName");
+            Console.WriteLine("\t\tNumber\t\tDescription");
             Console.WriteLine("_________________________________________________________________________________\n");
             Console.WriteLine("Information");
             Console.WriteLine("_________________________________________________________________________________\n");
             Console.WriteLine("\t\t1\t\tDisplay all trains and all crew");
-            Console.WriteLine("\t\t2\t\tSelect crew, then select a train");
-            Console.WriteLine("\t\t3\t\tDisplay train information");
-            Console.WriteLine("\t\t4\t\tDisplay rolling stock in a train");
-            Console.WriteLine("\t\t5\t\tDisplay industries and yards the current module\n");
+            Console.WriteLine("\t\t2\t\tDisplay train information");
+            Console.WriteLine("\t\t3\t\tDisplay rolling stock in a train");
+            Console.WriteLine("\t\t4\t\tDisplay industries and yards the current module\n");
             Console.WriteLine("_________________________________________________________________________________\n");
             Console.WriteLine("Game play example");
             Console.WriteLine("_________________________________________________________________________________\n");
-            Console.WriteLine("\t\t6\t\tDisplay rolling stock cars at an industry");
-            Console.WriteLine("\t\t7\t\tDrop off rolling stock at an industry on a selected module");
-            Console.WriteLine("\t\t8\t\tPick up rolling stock from an industry on a selected module");
-            Console.WriteLine("\t\t9\t\tInsert cars to a Train");
-            Console.WriteLine("\t\t10\t\tRemove Cars from a train");
-            Console.WriteLine("\t\t11\t\tMove train from one module to another module");
+            Console.WriteLine("\t\t5\t\tDisplay rolling stock cars at an industry");
+            Console.WriteLine("\t\t6\t\tDrop off rolling stock at an industry on a selected module");
+            Console.WriteLine("\t\t7\t\tPick up rolling stock from an industry on a selected module");
+            Console.WriteLine("\t\t8\t\tInsert cars to a Train");
+            Console.WriteLine("\t\t9\t\tRemove Cars from a train");
+            Console.WriteLine("\t\t10\t\tMove train from one module to another module");
             Console.WriteLine("_________________________________________________________________________________");
             Console.Write("\nPlease enter the number next to your selection ");
         }
@@ -831,12 +994,12 @@ namespace Database_Presentation
 
         private void DrawTrain()
         {
-            Console.WriteLine("             oooOOOOOOOOOOO");
-            Console.WriteLine("             o   ____          :::::::::::::::::: :::::::::::::::::: :::::::::::::::::: :::::::::::::::::: :::::::::::::::::: :::::::::::::::::: :::::::::::::::::: __|-----|__");
-            Console.WriteLine("             Y_,_|[]| --++++++ |[][][][][][][][]| |[][][][][][][][]| |[][][][][][][][]| |[][][][][][][][]| |[][][][][][][][]| |[][][][][][][][]| |[][][][][][][][]| |  [] []  |");
-            Console.WriteLine("            {|_|_|__|;|______|;|________________|;|________________|;|________________|;|________________|;|________________|;|________________|;|________________|;|_________|;");
-            Console.WriteLine("             /oo--OO   oo  oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo     oo");
-            Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
+            Console.WriteLine("      oooOOOOOOOOOOO");
+            Console.WriteLine("      o   ____          :::::::::::::::::: :::::::::::::::::: :::::::::::::::::: __|-----|__");
+            Console.WriteLine("      Y_,_|[]| --++++++ |[][][][][][][][]| |[][][][][][][][]| |[][][][][][][][]| |  [] []  |");
+            Console.WriteLine("     {|_|_|__|;|______|;|________________|;|________________|;|________________|;|_________|");
+            Console.WriteLine("      /oo--OO   oo  oo   oo oo      oo oo   oo oo      oo oo   oo oo      oo oo   oo     oo");
+            Console.WriteLine("+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n");
         }
 
         private void EndFunction()
@@ -855,7 +1018,7 @@ namespace Database_Presentation
         private int getInputAndReturnNumber(int count)
         {
             int toReturn = 0;
-            Console.Write("Q or Quit will exit the program:   ");
+            Console.Write("\nNOTE: 'Q' or 'Quit' will exit the program:   ");
             var input = Console.ReadLine();
             while (!Int32.TryParse(input, out toReturn) || (toReturn >= count + 1 || toReturn <= 0))
             {
@@ -873,6 +1036,12 @@ namespace Database_Presentation
                 input = Console.ReadLine();
             }
             return toReturn - 1;
+        }
+
+        private void StartMethod()
+        {
+            Console.Clear();
+            DrawTrain();
         }
 
         #endregion HelperMethods

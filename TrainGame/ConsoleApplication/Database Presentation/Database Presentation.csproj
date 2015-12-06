@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBException.cs" />
     <Compile Include="DBHandler.cs" />
     <Compile Include="Entities\RollingStock.cs" />
     <Compile Include="Entities\Crew.cs" />

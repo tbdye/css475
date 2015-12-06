@@ -315,8 +315,7 @@ namespace Database_Presentation
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {
-                Console.WriteLine(ex.Message);
-                return null;
+                throw new DBException(ex.Message);
             }
             return values;
         }
@@ -343,8 +342,7 @@ namespace Database_Presentation
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {
-                Console.WriteLine(ex.Message);
-                return null;
+                throw new DBException(ex.Message);
             }
             return toReturn;
         }
@@ -365,8 +363,7 @@ namespace Database_Presentation
             }
             catch (MySql.Data.MySqlClient.MySqlException ex)
             {
-                Console.WriteLine(ex.Message);
-                return false;
+                throw new DBException(ex.Message);
             }
             return true;
         }
