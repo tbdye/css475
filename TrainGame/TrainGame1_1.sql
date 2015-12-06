@@ -696,6 +696,86 @@ CREATE TABLE IF NOT EXISTS TrainCrews (
         ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
+#Functions
+
+#GetNextDestination
+DROP FUNCTION IF EXISTS GetNextDestination;
+DELIMITER $$
+CREATE FUNCTION GetNextDestination(
+	ShippingOrder INT) 
+RETURNS VARCHAR(255)
+DETERMINISTIC
+BEGIN
+	DECLARE Destination VARCHAR(255);
+    CASE
+		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			AND ShippingOrder IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = ShippingOrder)
+            THEN
+				SET Destination = (SELECT ReturnToYard FROM Waybills WHERE UsingShipmentID = ShippingOrder);
+		WHEN ShippingOrder NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			THEN
+				SET Destination = (SELECT FromIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
+		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
+			THEN
+				SET Destination = (SELECT ToIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
+    END CASE;
+    RETURN Destination;
+END$$
+DELIMITER ;
+
+#StoredProcedures
+
+#LoadRollingStock
+DROP PROCEDURE IF EXISTS LoadRollingStock;
+DELIMITER $$
+CREATE PROCEDURE LoadRollingStock (
+    IN Industry VARCHAR(255),
+    IN CarID VARCHAR(255))
+BEGIN
+	SET @shippingID := (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID);
+    SET @productType := (SELECT ProductType FROM Shipments WHERE ShipmentID = @shippingID);
+    IF (
+			#Don't attempt to deliver something that has already been delivered
+			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = @shippingID)
+        AND
+			#Verify that the industry produces this product type.
+			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = TRUE)
+		) THEN
+        #Remove the car from the train, add it to the industry, and mark the shipping order as picked up.
+		DELETE FROM ConsistedCars WHERE UsingCar = CarID;
+		INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
+		INSERT INTO ShipmentsPickedUp VALUES (@shippingID, DEFAULT);
+	ELSE
+		SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot load this rolling stock car at this industry.';
+	END IF;
+END $$
+DELIMITER ;
+
+#UnloadRollingStock
+DROP PROCEDURE IF EXISTS UnloadRollingStock;
+DELIMITER $$
+CREATE PROCEDURE UnloadRollingStock (
+    IN Industry VARCHAR(255),
+    IN CarID VARCHAR(255))
+BEGIN
+	SET @shippingID := (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID);
+	SET @productType := (SELECT ProductType FROM Shipments WHERE ShipmentID = @shippingID);
+    IF (
+			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = @shippingID)
+        AND
+			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = FALSE)
+		) THEN
+	DELETE FROM ConsistedCars WHERE UsingCar = CarID;
+	INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
+	INSERT INTO ShipmentsDelivered VALUES (@shippingID, DEFAULT);
+	ELSE
+		SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Cannot unload this rolling stock car at this industry.';
+	END IF;
+END $$
+DELIMITER ;
+
 #Views
 
 #ViewActiveModules
@@ -796,88 +876,6 @@ CREATE VIEW ViewRollingStockAtIndustry AS
         RollingStockCars c
             JOIN
         RollingStockAtIndustries i ON c.CarID = i.CarID;
-
-#
-
-#StoredProcedures
-
-#LoadRollingStock
-DROP PROCEDURE IF EXISTS LoadRollingStock;
-DELIMITER $$
-CREATE PROCEDURE LoadRollingStock (
-    IN Industry VARCHAR(255),
-    IN CarID VARCHAR(255))
-BEGIN
-	SET @shippingID := (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID);
-    SET @productType := (SELECT ProductType FROM Shipments WHERE ShipmentID = @shippingID);
-    IF (
-			#Don't attempt to deliver something that has already been delivered
-			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = @shippingID)
-        AND
-			#Verify that the industry produces this product type.
-			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = TRUE)
-		) THEN
-        #Remove the car from the train, add it to the industry, and mark the shipping order as picked up.
-		DELETE FROM ConsistedCars WHERE UsingCar = CarID;
-		INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
-		INSERT INTO ShipmentsPickedUp VALUES (@shippingID, DEFAULT);
-	ELSE
-		SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot load this rolling stock car at this industry.';
-	END IF;
-END $$
-DELIMITER ;
-
-#UnloadRollingStock
-DROP PROCEDURE IF EXISTS UnloadRollingStock;
-DELIMITER $$
-CREATE PROCEDURE UnloadRollingStock (
-    IN Industry VARCHAR(255),
-    IN CarID VARCHAR(255))
-BEGIN
-	SET @shippingID := (SELECT UsingShipmentID FROM Waybills WHERE OnCar = CarID);
-	SET @productType := (SELECT ProductType FROM Shipments WHERE ShipmentID = @shippingID);
-    IF (
-			@shippingID NOT IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = @shippingID)
-        AND
-			@productType IN (SELECT UsingProductType FROM IndustryProducts WHERE ForIndustry = Industry AND IsProducer = FALSE)
-		) THEN
-	DELETE FROM ConsistedCars WHERE UsingCar = CarID;
-	INSERT INTO RollingStockAtIndustries VALUES (CarID, Industry, DEFAULT);
-	INSERT INTO ShipmentsDelivered VALUES (@shippingID, DEFAULT);
-	ELSE
-		SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot unload this rolling stock car at this industry.';
-	END IF;
-END $$
-DELIMITER ;
-
-#Functions
-
-#GetNextDestination
-DROP FUNCTION IF EXISTS GetNextDestination;
-DELIMITER $$
-CREATE FUNCTION GetNextDestination(
-	ShippingOrder INT) 
-RETURNS VARCHAR(255)
-DETERMINISTIC
-BEGIN
-	DECLARE Destination VARCHAR(255);
-    CASE
-		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
-			AND ShippingOrder IN (SELECT ShipmentID FROM ShipmentsDelivered WHERE ShipmentID = ShippingOrder)
-            THEN
-				SET Destination = (SELECT ReturnToYard FROM Waybills WHERE UsingShipmentID = ShippingOrder);
-		WHEN ShippingOrder NOT IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
-			THEN
-				SET Destination = (SELECT FromIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
-		WHEN ShippingOrder IN (SELECT ShipmentID FROM ShipmentsPickedUp WHERE ShipmentID = ShippingOrder)
-			THEN
-				SET Destination = (SELECT ToIndustry FROM Shipments WHERE ShipmentID = ShippingOrder);
-    END CASE;
-    RETURN Destination;
-END$$
-DELIMITER ;
 
 #This test data creates a small model railroad layout, train cars, and players.
 #	Data insertion is handled in a sequence order that is either required by
