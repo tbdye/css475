@@ -575,7 +575,7 @@ namespace Database_Presentation
             }
             catch (DBException db)
             {
-                Console.WriteLine("There was an error retrieving your information. The DB returned the following message");
+                Console.WriteLine("There was an error updating your information. The DB returned the following message");
                 Console.WriteLine(db.Message);
                 EndFunction();
                 return;
@@ -587,7 +587,8 @@ namespace Database_Presentation
                 EndFunction();
                 return;
             }
-            Console.WriteLine("Your train #{0}, was moved from Module {1} to the Module {2}.", curPlayer.Train.TrainNumber, previousModuleName, curPlayer.Train.Module);
+            curPlayer.Train.Module = moduleValues[moduleIndex].Name;
+            Console.WriteLine("Your train #{0}, was moved from Module {1} to the Module {2}.", curPlayer.Train.TrainNumber, previousModuleName, moduleValues[moduleIndex].Name);
             EndFunction();
         }
 
